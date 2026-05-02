@@ -1,0 +1,527 @@
+You are a senior full-stack software architect, product engineer, and UI/UX designer.
+
+Build Version 1 of a production-ready AI-powered desktop ERP application for Indian SMEs. The product must feel like a modern, premium alternative to traditional accounting software, but with a cleaner interface and an AI command prompt.
+
+==================================================
+1) PRODUCT VISION
+==================================================
+
+Create a downloadable desktop application for Windows users.
+
+The app must:
+- Install on the user’s machine like a real software product.
+- Open with a login/signup authentication flow.
+- Check the user’s subscription plan after authentication.
+- Unlock or restrict features based on the plan.
+- Work in a local-first mode using SQLite.
+- Be ready for cloud sync later, but do not build full cloud sync in Version 1.
+- Include a prompt-based AI assistant that can understand natural language business commands.
+- Be designed for small shop owners, SMEs with employees, and accountants.
+
+The application is a hybrid ERP system with:
+- Accounting basics
+- Invoice generation
+- Inventory tracking
+- AI assistant for business queries
+- A clean dashboard
+- Freemium access control
+
+This is Version 1 only. Keep the scope realistic and shippable.
+
+==================================================
+2) VERSION 1 SCOPE
+==================================================
+
+Build only the following features in Version 1:
+
+A. Authentication
+- User signup
+- User login
+- Logout
+- Session handling
+- Basic password hashing
+- Simple token/session refresh logic
+- First-time onboarding screen
+
+B. Plan Handling
+- Free plan
+- Pro plan placeholder structure
+- Plan detection after login
+- Feature gating logic
+- Read-only fallback when the plan is downgraded or expired
+- Trial usage limit for AI prompts
+- Do not integrate full payment gateway in Version 1 unless a clean placeholder structure is created
+
+C. Core ERP Modules
+1. Dashboard
+- Total revenue card
+- Pending payments card
+- Low stock alerts card
+- Profit/loss summary card
+- Recent activity list
+- A clean chart area with basic line or bar charts
+
+2. Invoices
+- Create invoice form
+- Add customer
+- Add products to invoice
+- Auto GST calculation
+- Save invoice
+- Invoice list
+- Search and filter invoices
+- Paid / unpaid status
+- Basic PDF export structure or placeholder if full PDF generation is too large for Version 1
+
+3. Inventory
+- Product list
+- Add product
+- Edit product
+- Delete product
+- Stock quantity
+- Low stock warning
+- Link products to invoice flow
+
+4. Accounting Basics
+- Ledger-like transaction list
+- Income and expense entries
+- Simple profit/loss calculation
+- Summary view
+
+5. AI Assistant Panel
+- Prompt-style chat interface
+- User can type natural language questions
+- AI assistant can answer using app data
+- AI assistant must support read-only insights in Version 1
+- The assistant may suggest actions, but actual destructive actions should be limited and require confirmation
+- Example prompts:
+  - “Show my profit this month”
+  - “Which invoices are unpaid?”
+  - “Which products are low in stock?”
+  - “Summarize my business this week”
+
+D. UI/UX
+- Clean, minimal, professional desktop interface
+- Dark mode as default
+- Light mode also supported
+- Smooth theme transitions
+- Sidebar navigation
+- Top bar with search, theme toggle, and profile area
+- Card-based layout
+- Responsive desktop-first design
+- Simple, elegant spacing
+- No clutter
+
+==================================================
+3) TECH STACK REQUIREMENTS
+==================================================
+
+Use this stack for Version 1:
+
+Frontend:
+- Electron
+- React
+- TypeScript preferred
+- Zustand or Redux for state management
+- Tailwind CSS or a clean equivalent styling approach
+
+Backend:
+- Node.js
+- Express
+
+Database:
+- SQLite for local storage in Version 1
+
+AI:
+- API-based AI integration only as a placeholder-ready layer
+- AI assistant should be designed so that later we can connect real LLM APIs easily
+
+Packaging:
+- Build as a desktop application
+- Windows target first
+
+==================================================
+4) IMPORTANT VERSION 1 LIMITS
+==================================================
+
+Do NOT implement these in Version 1:
+- Full GST filing workflows
+- GSTR-1 JSON export
+- GSTR-3B export
+- Multi-user team collaboration
+- Multi-company switching
+- Full cloud backup/sync
+- Razorpay or PhonePe payment integration
+- Advanced analytics drill-down
+- Complex role-based access control
+- Mac/Linux packaging
+- OCR invoice reading production pipeline
+
+However, create clean architecture and placeholder modules so these can be added later.
+
+==================================================
+5) BUSINESS LOGIC
+==================================================
+
+Free Plan:
+- Access to invoice generator
+- Access to inventory tracking
+- Limited AI prompts, maximum 3 prompts for trial or free usage
+- Read-only mode after limits are reached
+- Basic dashboard access
+
+Pro Plan Placeholder:
+- Same application structure but with feature unlocks prepared
+- Full cloud backup can be added later
+- Advanced AI limits can be added later
+
+Plan enforcement:
+- The backend must own the plan logic, not only the UI
+- UI restrictions alone are not enough
+- When plan access is not available, restrict write actions and allow read-only access
+- When trial or free limits are exhausted, show a clear upgrade message
+
+==================================================
+6) APP BEHAVIOR
+==================================================
+
+Startup flow:
+1. App launches
+2. Check whether the user is authenticated
+3. If not authenticated, show login/signup screen
+4. If authenticated, verify plan/status
+5. If access is valid, open the dashboard
+6. If access is limited, open the app in read-only mode
+7. If first-time user, show onboarding
+
+Invoice flow:
+1. User creates invoice
+2. Add customer details
+3. Add one or more products
+4. Calculate GST automatically
+5. Save invoice to local DB
+6. Update inventory quantity
+7. Create accounting entry
+8. Show updated dashboard values
+
+Inventory flow:
+1. User adds or edits a product
+2. Stock quantity is stored in SQLite
+3. Low stock alert appears when quantity goes below threshold
+4. Inventory is updated when invoices are created
+
+AI flow:
+1. User enters a natural language prompt
+2. App interprets intent
+3. AI returns a structured response
+4. If read-only query, show result directly
+5. If action is requested, require confirmation and validate permissions before execution
+
+==================================================
+7) USER EXPERIENCE DETAILS
+==================================================
+
+Design style:
+- Premium, modern, minimal ERP style
+- Dark background by default
+- Neon or bright accent color for highlights
+- Smooth transitions
+- Clear hierarchy
+- Professional spacing
+- No overloaded tables or dense layouts
+
+Theme requirements:
+- Dark mode default
+- Light mode available
+- Theme toggle in top-right area
+- Persist theme in local storage
+- Smooth animation during theme switch
+
+Navigation:
+- Collapsible sidebar
+- Main sections:
+  - Dashboard
+  - Invoices
+  - Inventory
+  - Accounting
+  - AI Assistant
+  - Settings
+
+Tables:
+- Sortable
+- Filterable
+- Searchable
+- Clean row spacing
+- Status badges for paid/unpaid/low stock
+
+Forms:
+- Validation on every form
+- Clear error messages
+- Disabled submit button while saving
+- Loading states
+
+Notifications:
+- Low stock alerts
+- Unpaid invoice reminders
+- Plan limit reached notices
+
+==================================================
+8) DATA MODEL
+==================================================
+
+Design a clean SQLite schema for Version 1 including at least these entities:
+
+- users
+- sessions or tokens
+- plans
+- products
+- customers
+- invoices
+- invoice_items
+- transactions
+- ai_prompt_logs
+- notifications
+- app_settings
+
+Each table should have:
+- primary key
+- timestamps
+- soft-delete where relevant
+- indexes for common query fields
+
+Also include:
+- invoice totals
+- GST amount fields
+- status fields
+- stock thresholds
+- prompt usage count
+- plan expiry/access status
+
+==================================================
+9) API DESIGN
+==================================================
+
+Create backend APIs for:
+
+Authentication:
+- signup
+- login
+- logout
+- session validation
+
+Products:
+- create product
+- update product
+- delete product
+- list products
+- get product by id
+
+Invoices:
+- create invoice
+- list invoices
+- get invoice by id
+- update invoice status
+
+Customers:
+- create customer
+- list customers
+
+Accounting:
+- record transaction
+- list transactions
+- summary endpoint for revenue/profit
+
+AI assistant:
+- send prompt
+- get structured answer
+- log prompt usage
+- enforce prompt limit
+
+Settings:
+- get app settings
+- update theme settings
+- get user plan status
+
+Every API should include:
+- request validation
+- error handling
+- clear response format
+- authentication protection where needed
+
+==================================================
+10) AI ASSISTANT DESIGN
+==================================================
+
+The AI assistant should behave like a business command interface.
+
+It must:
+- Understand business queries in plain English
+- Convert user prompts into structured intent
+- Return text answers
+- Return table-like summaries when needed
+- Return chart-friendly data when needed
+- Respect plan limits
+- Be safe and conservative with write actions
+
+Allowed in Version 1:
+- Read business data
+- Summarize invoices
+- Summarize revenue
+- Show unpaid customers
+- Show low stock items
+- Give business insights
+
+Restricted or confirmation-based:
+- Create invoice
+- Add product
+- Mark payment received
+- Delete data
+
+The AI logic should include:
+- Intent classification
+- Entity extraction
+- Response generation
+- Permission check
+- Audit logging for each prompt
+
+==================================================
+11) PROJECT STRUCTURE
+==================================================
+
+Generate a clean, scalable folder structure similar to this:
+
+/app
+  /electron
+    main.ts
+    preload.ts
+  /frontend
+    /src
+      /components
+      /pages
+      /layouts
+      /hooks
+      /store
+      /services
+      /utils
+      /styles
+  /backend
+    /src
+      /controllers
+      /routes
+      /services
+      /middleware
+      /db
+      /models
+      /validators
+      /config
+  /shared
+    types
+    constants
+    helpers
+  /assets
+  package.json
+  README.md
+
+Keep the code modular and production-oriented.
+
+==================================================
+12) CODE QUALITY REQUIREMENTS
+==================================================
+
+The code must:
+- Be clean and modular
+- Use meaningful names
+- Include comments where necessary
+- Include validation and error handling
+- Include loading states
+- Include reusable components
+- Include a proper state management strategy
+- Avoid unnecessary complexity
+- Avoid hardcoding where config is better
+- Be ready for future scaling
+
+==================================================
+13) UI COMPONENTS TO CREATE
+==================================================
+
+Create these reusable UI components:
+- Sidebar
+- TopNavbar
+- ThemeToggle
+- DashboardCard
+- DataTable
+- SearchBar
+- Modal
+- FormInput
+- SelectDropdown
+- StatusBadge
+- ChartCard
+- LoadingSkeleton
+- EmptyState
+- ConfirmationDialog
+- NotificationToast
+
+==================================================
+14) ACCEPTANCE CRITERIA
+==================================================
+
+Version 1 is complete only when all of the following are true:
+
+- The app launches as a desktop application
+- The user can sign up and log in
+- The dashboard loads after login
+- The invoice module works end-to-end
+- Inventory can be created and tracked
+- Basic accounting data is visible
+- The AI assistant can answer business prompts using stored data
+- Theme toggle works
+- Data persists in SQLite
+- Plan gating logic is enforced
+- Read-only mode works when required
+- The UI feels polished and professional
+- The app is stable enough for a demo or pilot deployment
+
+==================================================
+15) DEVELOPMENT OUTPUT EXPECTATION
+==================================================
+
+When generating the solution, provide:
+1. Full project structure
+2. Full frontend code
+3. Full backend code
+4. SQLite schema
+5. AI assistant logic
+6. Theme styling
+7. Setup instructions
+8. Run instructions
+9. Packaging instructions for Windows desktop build
+10. Future roadmap notes for Pro version
+
+If full implementation is too large in one response, break it into logical parts, but keep the architecture consistent.
+
+==================================================
+16) IMPLEMENTATION PRIORITIES
+==================================================
+
+Build in this order:
+1. App skeleton
+2. Authentication
+3. Local DB and schema
+4. Dashboard
+5. Invoice module
+6. Inventory module
+7. Accounting module
+8. AI assistant
+9. Theme system
+10. Plan gating
+11. Error handling
+12. Packaging
+
+==================================================
+17) FINAL INSTRUCTION
+==================================================
+
+Treat this as a real commercial software product.
+Do not write toy code.
+Do not overcomplicate Version 1.
+Do not build future features unless the foundations are clean.
+Focus on reliability, usability, and a polished desktop experience.
