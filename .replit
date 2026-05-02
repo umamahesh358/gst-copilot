@@ -30,3 +30,8 @@ externalPort = 80
 [[ports]]
 localPort = 23023
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+DATABASE_URL = "postgresql://user:password@your-host:5432/your-database"
