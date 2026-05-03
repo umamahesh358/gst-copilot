@@ -1,0 +1,628 @@
+Build Version 5 of the existing AI-powered desktop ERP application.
+
+==================================================
+VERSION 5 GOAL
+==================================================
+
+Version 5 is the "Enterprise Intelligence, Mobile Access, and Automation Scale Release".
+
+The purpose of Version 5 is to evolve the product beyond integrations and ecosystem support into a true enterprise-grade business operating system that can:
+- provide mobile companion access
+- support AI agent-based workflows
+- automate reconciliation and operational checks
+- handle advanced compliance and policy enforcement
+- scale for larger companies and higher data volumes
+- support enterprise deployment topologies
+- provide deeper governance, controls, and observability
+- enable marketplace-style extensibility for add-ons and connectors
+- support advanced API ecosystem usage
+
+The application should now feel like a serious enterprise software platform for SMEs, accountants, finance teams, operations teams, and growing organizations.
+
+==================================================
+PRODUCT CONTEXT
+==================================================
+
+The product already includes:
+- desktop app shell
+- authentication
+- subscriptions and billing
+- plan enforcement
+- local SQLite data
+- cloud backup and restore
+- device binding
+- license validation
+- invoices
+- inventory
+- accounting
+- expenses/purchases/payables
+- OCR/document intelligence
+- team collaboration
+- permissions and approvals
+- AI assistant
+- automation workflows
+- analytics dashboards
+- integrations and webhooks
+- import/export
+- custom fields
+- deployment profiles
+- branding
+- audit logs
+- secure architecture
+
+Version 5 must extend those foundations with enterprise intelligence, mobile readiness, automation depth, and governance.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Turn the app into an enterprise operating system that can:
+- provide mobile companion access through secure APIs
+- support AI agents that can plan and execute business tasks safely
+- perform automated bank/payment reconciliation and matching
+- manage advanced compliance workflows and approvals
+- support policy engines and governance rules
+- handle larger organizational scale and higher concurrency
+- offer enterprise deployment and tenant administration
+- expose add-on marketplace and plugin architecture readiness
+- provide strong observability, metrics, and admin controls
+
+==================================================
+VERSION 5 FEATURE SCOPE
+==================================================
+
+Build the following in Version 5:
+
+1. MOBILE COMPANION READINESS
+- Provide a mobile-friendly companion experience through secure APIs and optionally a lightweight mobile/PWA interface
+- Enable secure access to dashboard summaries, invoices, inventory, approvals, notifications, tasks, and AI summaries
+- Support mobile login, token refresh, and device/session trust
+- Add mobile-friendly layouts and condensed views where needed
+- Support read-only mobile views for certain roles or plans
+- Keep the desktop app as the primary rich interface
+
+2. AI AGENT WORKFLOWS
+- Upgrade from single-shot AI prompts to multi-step AI agents
+- Support task planning, tool selection, execution, and verification
+- Allow AI to chain actions with permission checks and confirmations
+- Support agent-driven business flows like:
+  - draft invoice creation
+  - payment follow-up preparation
+  - reconciliation suggestions
+  - compliance reminders
+  - anomaly investigation
+  - expense categorization
+- Add agent state, execution history, and auditability
+- Keep agent behavior conservative and safe
+
+3. AUTO-RECONCILIATION ENGINE
+- Bank/payment statement import and matching
+- Match payments to invoices and receivables
+- Suggest reconciliation candidates
+- Flag unmatched or ambiguous entries
+- Support fuzzy matching on amount, date, reference, and customer/vendor
+- Create review queue for manual approval
+- Record reconciliation decisions and audit trail
+- Allow rule-based auto-match for trusted patterns
+
+4. ADVANCED COMPLIANCE AND POLICY ENGINE
+- Add policy-driven validation for finance and operational actions
+- Support approval thresholds
+- Add compliance checkpoints before sensitive actions
+- Support lock periods and period close controls
+- Add audit-ready workflow restrictions
+- Support configurable approval policies by company, role, and module
+- Add compliance reminders and exception tracking
+- Keep the design adaptable to different business policies
+
+5. ENTERPRISE GOVERNANCE AND ADMIN
+- Tenant-level governance controls
+- Admin dashboards for organization health
+- Role and permission audits
+- API usage oversight
+- Storage and backup governance
+- Device/session governance
+- Integration governance
+- Data retention settings
+- Export and deletion policies
+- Access review tools
+- Security event monitoring
+
+6. HIGHER SCALE DATA HANDLING
+- Improve performance for larger datasets
+- Add pagination, batching, and lazy loading where needed
+- Optimize dashboards and reports for large volumes
+- Add background job processing for heavy tasks
+- Improve query planning and indexing strategies
+- Keep desktop performance responsive
+- Prepare for large organization usage without breaking small-business simplicity
+
+7. MARKETPLACE / ADD-ON READINESS
+- Prepare a plugin/add-on framework
+- Allow optional business extensions to be registered safely
+- Support marketplace-ready metadata for add-ons
+- Keep extension permissions explicit
+- Add compatibility/version handling for add-ons
+- Create a UI section for installed or available extensions
+- Do not overbuild a full public marketplace unless the architecture is clean and ready
+
+8. ADVANCED NOTIFICATIONS AND TASKS
+- Add tasks, reminders, and follow-up queues
+- Create smarter notification prioritization
+- Support escalation rules
+- Notification digests for mobile and desktop
+- AI-generated task suggestions
+- Assignment and ownership fields for tasks
+- Due-date and status tracking
+
+9. BUSINESS INTELLIGENCE ENHANCEMENTS
+- Add cross-module insights combining invoices, payments, reconciliation, inventory, and expenses
+- Support AI explanations for operational anomalies
+- Trend and forecasting views where feasible
+- Revenue, cash flow, receivable, payable, and stock intelligence
+- Exception summaries and suggested actions
+- Better drill-down and comparison flows
+
+10. ADVANCED SECURITY AND TRUST
+- Strengthen token/session handling
+- Add stronger device trust logic
+- Improve sensitive action confirmation flows
+- Keep audit trails for AI agents and reconciliation decisions
+- Enforce permission boundaries server-side
+- Support secure mobile/API usage
+- Protect against accidental automation errors
+
+==================================================
+BUSINESS BEHAVIOR
+==================================================
+
+The system should be able to distinguish:
+- company context
+- module context
+- role and permission level
+- subscription access
+- device trust
+- AI agent action type
+- reconciliation confidence
+- policy rule state
+- approval requirement
+- external connector state
+- mobile vs desktop access mode
+- audit severity
+
+Rules:
+- Read-only analytical or mobile summary queries should be fast and safe.
+- Write actions and AI agent actions must be permission-checked and confirmation-based.
+- Reconciliation suggestions should not auto-post unless the rule and confidence threshold allow it.
+- Policy violations should block or route to approval.
+- Company data must remain isolated.
+- Audit logs must capture who did what, when, why, and in which company.
+
+==================================================
+USER EXPERIENCE
+==================================================
+
+The UI must remain premium, minimal, and desktop-first, while adapting for companion/mobile readiness.
+
+Add new screens for:
+- mobile companion overview
+- AI agent workspace
+- reconciliation review queue
+- bank/payment matching dashboard
+- policy engine settings
+- governance dashboard
+- retention and compliance settings
+- add-ons/extensions manager
+- enterprise admin dashboard
+- task and reminder center
+- exception investigation views
+- approval-by-policy screens
+
+Design requirements:
+- clean layout
+- minimal clutter
+- strong spacing
+- card-based information
+- crisp tables
+- smooth transitions
+- polished empty states
+- clear badges and status indicators
+- mobile-friendly summary screens
+- desktop-rich detail screens
+- fast navigation between overview and drill-down
+
+Theme requirements:
+- preserve dark mode
+- preserve light mode
+- keep theme persistence
+- keep UI consistent across all new modules
+- make responsive layouts for companion views where needed
+
+==================================================
+DATABASE REQUIREMENTS
+==================================================
+
+Extend the data model for both local and cloud layers.
+
+Add or expand entities such as:
+- users
+- companies
+- company_members
+- roles
+- permissions
+- subscriptions
+- plans
+- devices
+- sessions
+- invoices
+- invoice_items
+- customers
+- vendors
+- products
+- transactions
+- expenses
+- purchases
+- receivables
+- payables
+- document_uploads
+- ocr_extractions
+- ai_chat_sessions
+- ai_prompt_logs
+- ai_agent_runs
+- analytics_snapshots
+- notifications
+- notification_deliveries
+- tasks
+- reminders
+- audit_logs
+- backup_jobs
+- sync_history
+- automation_rules
+- approval_requests
+- integration_connections
+- webhook_endpoints
+- webhook_deliveries
+- import_jobs
+- export_jobs
+- custom_fields
+- custom_field_values
+- deployment_profiles
+- branding_settings
+- reconciliation_jobs
+- reconciliation_matches
+- bank_statement_uploads
+- policy_rules
+- policy_violations
+- retention_rules
+- add_ons
+- add_on_installs
+- enterprise_settings
+- system_metrics
+
+Requirements:
+- foreign keys
+- timestamps
+- status fields
+- soft delete where useful
+- indexes on search and filter fields
+- audit metadata
+- company scoping on business data
+- agent/reconciliation confidence scores
+- policy and approval references
+- mobile session metadata where relevant
+
+==================================================
+API REQUIREMENTS
+==================================================
+
+Create backend APIs for:
+
+Authentication and session:
+- login
+- signup
+- refresh
+- logout
+- validate session
+
+Company and team:
+- create company
+- switch company
+- list companies
+- manage members
+- update roles and permissions
+
+Mobile/API access:
+- mobile summary endpoints
+- condensed dashboard endpoints
+- mobile notifications
+- mobile approvals
+- mobile tasks
+- secure read-only endpoints where appropriate
+
+AI agents:
+- create agent run
+- list agent runs
+- execute agent step
+- confirm agent action
+- cancel agent run
+- fetch agent history
+
+Reconciliation:
+- upload statement
+- parse statement
+- generate matches
+- approve match
+- reject match
+- auto-match rules
+- reconciliation status
+- reconciliation history
+
+Policy and compliance:
+- create policy rule
+- update policy rule
+- delete policy rule
+- evaluate policy
+- list violations
+- review exception
+- close accounting period
+- retention management
+
+Tasks and reminders:
+- create task
+- update task
+- assign task
+- list reminders
+- schedule reminder
+- mark complete
+- escalation handling
+
+Add-ons:
+- list add-ons
+- install add-on
+- activate add-on
+- deactivate add-on
+- version compatibility check
+
+Enterprise admin:
+- system metrics
+- tenant overview
+- security events
+- session governance
+- access review
+- retention settings
+- API usage and limits
+
+Every API must have:
+- validation
+- authentication
+- permission checks
+- company context checks
+- policy checks where needed
+- error handling
+- audit logging
+- consistent response structure
+
+==================================================
+AI SYSTEM REQUIREMENTS
+==================================================
+
+The AI system must now behave like an enterprise agent platform.
+
+It should:
+- plan multi-step business tasks
+- ask clarifying questions when intent is uncertain
+- use tools safely with permissions
+- check policy before taking actions
+- compare reconciliation candidates
+- explain exceptions and anomalies
+- summarize business and operational states
+- generate task drafts and follow-ups
+- create recommendations with confidence scoring
+- keep an execution log for every step
+- stop and request confirmation when needed
+
+Examples:
+- "Reconcile these payments with unpaid invoices."
+- "Draft a follow-up task for all overdue customers."
+- "Check whether this expense violates company policy."
+- "Summarize exceptions from last week."
+- "Create a mobile summary for the owner."
+- "Suggest which bank entries can be auto-matched."
+
+The AI layer should support:
+- intent detection
+- entity extraction
+- task planning
+- tool/action calling
+- permission checking
+- policy checking
+- confirmation prompts
+- audit logging
+- confidence scoring
+- rollback or safe cancellation where possible
+- fallback behavior when uncertain
+
+==================================================
+RECONCILIATION REQUIREMENTS
+==================================================
+
+Build a robust reconciliation engine with:
+- statement upload
+- parsing and normalization
+- candidate matching
+- confidence scoring
+- manual review queue
+- auto-match rules
+- date/amount/reference heuristics
+- duplicate detection
+- partial match support
+- resolution history
+- audit trail for every decision
+
+Do not auto-post uncertain matches without policy allowance.
+
+==================================================
+MOBILE / COMPANION REQUIREMENTS
+==================================================
+
+Build APIs and UI views suitable for a future mobile companion experience.
+
+Support:
+- condensed dashboards
+- quick approvals
+- tasks and reminders
+- notifications
+- summaries
+- invoice lookup
+- customer payment status
+- low-stock alerts
+- AI business summary
+
+If building a lightweight companion UI in Version 5, keep it focused and simple.
+
+==================================================
+POLICY / GOVERNANCE REQUIREMENTS
+==================================================
+
+Implement a policy engine with:
+- conditions
+- thresholds
+- actions
+- approval requirements
+- exception handling
+- violation logging
+- company-level overrides
+- module-level rules
+
+Policy examples:
+- invoice above threshold requires approval
+- reconciliation above confidence threshold may auto-match
+- expense above limit requires manager approval
+- period close locks edits
+- sensitive role changes require admin approval
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+Maintain and strengthen the security model:
+- JWT and refresh tokens
+- device validation
+- encrypted local sensitive data
+- server-side permission checks
+- audit logs
+- company isolation
+- secure file upload handling
+- secure mobile/API access
+- policy checks before actions
+- payment and subscription trust only from backend
+
+Never allow the frontend to be the source of truth for permissions or business logic.
+
+==================================================
+ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep the codebase modular and scalable.
+
+Suggested structure:
+- electron
+- frontend
+- backend
+- mobile
+- shared
+- modules
+- agents
+- reconciliation
+- policy
+- analytics
+- integrations
+- connectors
+- assets
+- scripts
+- docs
+
+Separate modules for:
+- auth
+- billing
+- companies
+- roles
+- approvals
+- invoices
+- inventory
+- accounting
+- expenses
+- purchases
+- vendors
+- receivables
+- payables
+- documents
+- ocr
+- ai
+- agent-runs
+- automation
+- analytics
+- notifications
+- audit
+- backup
+- sync
+- integrations
+- webhooks
+- import-export
+- custom-fields
+- deployment
+- branding
+- observability
+- reconciliation
+- policy
+- tasks
+- add-ons
+
+==================================================
+DEVELOPMENT PRIORITIES
+==================================================
+
+Build in this order:
+1. mobile/API access layer
+2. AI agent runtime and execution log
+3. reconciliation engine and review queue
+4. policy engine and compliance rules
+5. tasks/reminders/escalation system
+6. enterprise admin and governance dashboards
+7. add-on/plugin framework
+8. companion UI and condensed views
+9. observability and metrics expansion
+10. security and access hardening
+11. performance optimization for large tenants
+12. packaging and documentation readiness
+
+==================================================
+OUTPUT EXPECTATION
+==================================================
+
+Provide:
+- updated project structure
+- frontend code
+- backend code
+- database schema changes
+- mobile/API access design
+- AI agent workflow engine
+- reconciliation engine
+- policy/compliance engine
+- task and reminder system
+- enterprise admin and governance UI
+- add-on framework
+- setup and run instructions
+- migration notes from Version 4 to Version 5
+
+If the full implementation is too large in one response, split it into clean, logical modules while keeping architecture consistent.
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+Treat this like a serious enterprise business operating system.
+Preserve Version 4 stability.
+Extend carefully.
+Prioritize trust, control, intelligence, and scalability.
+Version 5 should feel like a real enterprise platform, not just an app.
