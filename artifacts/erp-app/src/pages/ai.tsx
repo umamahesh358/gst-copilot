@@ -12,6 +12,7 @@ import {
   Package, Receipt, AlertTriangle, Mail, MessageSquare,
   CreditCard, Database, Users, Calculator, Slack, Table2,
   Globe, MessageCircle, RefreshCw, XCircle, Copy, CheckSquare,
+  BarChart3, ShieldCheck, Plug,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -97,20 +98,55 @@ function ChatPanel() {
   const sendPromptMutation = useSendAiPrompt();
   const isLimitReached = usage?.remaining === 0;
 
-  const examplePrompts = [
-    "Give me a full business summary for this month",
-    "Which invoices are unpaid and how much is owed?",
-    "What products are running low on stock?",
-    "Analyze my profit and loss — where can I save?",
-    "How is my revenue trending compared to last month?",
-    "What actions should I take this week?",
-  ];
-
-  const actionExamples = [
-    { icon: FileText, title: "Create invoices", text: "Create invoice for Rajan Mehta, invoice number 2301, 18% GST" },
-    { icon: BellRing, title: "Set alerts", text: "Notify me when stock goes below 10 units" },
-    { icon: Workflow, title: "Automate work", text: "When an invoice is paid, mark the workflow as completed" },
-    { icon: Webhook, title: "Connect webhooks", text: "Send invoice paid events to my webhook URL" },
+  const quickCategories = [
+    {
+      label: "Business Insights",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50 dark:bg-indigo-950",
+      icon: BarChart3,
+      prompts: [
+        "Give me a full business summary for this month",
+        "Which invoices are unpaid and how much is owed?",
+        "Analyze my profit and loss — where can I save?",
+        "How is my revenue trending compared to last month?",
+      ],
+    },
+    {
+      label: "Actions & Tasks",
+      color: "text-emerald-600",
+      bg: "bg-emerald-50 dark:bg-emerald-950",
+      icon: FileText,
+      prompts: [
+        "Create invoice for Rajan Mehta, 18% GST, amount ₹25,000",
+        "What actions should I take this week?",
+        "Which products are running low on stock?",
+        "List all overdue invoices and their amounts",
+      ],
+    },
+    {
+      label: "Automations",
+      color: "text-amber-600",
+      bg: "bg-amber-50 dark:bg-amber-950",
+      icon: Workflow,
+      prompts: [
+        "Notify me when any product stock goes below 10 units",
+        "Auto-flag invoices that are overdue by more than 7 days",
+        "Trigger a backup automatically at month end",
+        "Create a reminder when a large expense is added",
+      ],
+    },
+    {
+      label: "Webhooks & Connect",
+      color: "text-purple-600",
+      bg: "bg-purple-50 dark:bg-purple-950",
+      icon: Webhook,
+      prompts: [
+        "Send invoice paid events to my webhook URL",
+        "Notify my system when stock goes low",
+        "Connect WhatsApp for payment notifications",
+        "Set up a webhook for every new expense created",
+      ],
+    },
   ];
 
   useEffect(() => {
@@ -128,11 +164,13 @@ function ChatPanel() {
     });
   };
 
+  const [activeCategory, setActiveCategory] = useState(0);
+
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full gap-3">
       {usage && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-400">Your business AI — ask anything or give a command</p>
+          <p className="text-xs text-gray-400">Ask anything, create things, set automations — all from here</p>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={`text-xs ${usage.remaining <= 3 ? "border-red-300 text-red-600" : "border-indigo-200 text-indigo-600"}`}>
               {usage.plan === "pro" ? "Pro · Unlimited" : `${usage.remaining} / ${usage.limit} prompts left`}
@@ -146,22 +184,31 @@ function ChatPanel() {
         </div>
       )}
 
-      <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
-        {actionExamples.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button key={item.title} onClick={() => handleSend(item.text)} disabled={sendPromptMutation.isPending || isLimitReached}
-              className="text-left rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:border-indigo-300 hover:shadow-sm transition-all disabled:opacity-50">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center">
-                  <Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div className="font-semibold text-sm text-gray-900 dark:text-white">{item.title}</div>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.text}</p>
+      {/* Category tabs + prompts */}
+      <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex border-b border-gray-100 dark:border-gray-800 overflow-x-auto">
+          {quickCategories.map((cat, i) => {
+            const Icon = cat.icon;
+            return (
+              <button key={cat.label} onClick={() => setActiveCategory(i)}
+                className={cn("flex items-center gap-2 px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-all border-b-2 -mb-px",
+                  activeCategory === i
+                    ? `border-indigo-500 ${cat.color} bg-gray-50 dark:bg-gray-800`
+                    : "border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300")}>
+                <Icon className="h-3.5 w-3.5" />
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-0">
+          {quickCategories[activeCategory].prompts.map((p, i) => (
+            <button key={i} onClick={() => handleSend(p)} disabled={sendPromptMutation.isPending || isLimitReached}
+              className="text-left px-4 py-3 text-xs text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all border-r border-b border-gray-50 dark:border-gray-800 last:border-r-0 disabled:opacity-50 leading-relaxed">
+              <span className="text-indigo-400 mr-1.5">›</span>{p}
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden rounded-2xl border-gray-200 dark:border-gray-800 shadow-sm" style={{ minHeight: 0 }}>
@@ -169,22 +216,14 @@ function ChatPanel() {
           {isHistoryLoading ? (
             <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
           ) : !history || history.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center max-w-2xl mx-auto">
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
               <div className="bg-indigo-50 dark:bg-indigo-950 p-4 rounded-2xl mb-4 shadow-inner">
                 <Sparkles className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">How can I help you today?</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-                Ask me to create invoices, set alerts, run automations, trigger workflows, or analyse your business data — all from chat.
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Ready to help</h3>
+              <p className="text-sm text-gray-400 max-w-sm">
+                Click a suggestion above, or type your own command below.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-lg">
-                {examplePrompts.map((ep, i) => (
-                  <button key={i} onClick={() => handleSend(ep)} disabled={sendPromptMutation.isPending || isLimitReached}
-                    className="text-left text-sm px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/50 transition-all text-gray-700 dark:text-gray-300 disabled:opacity-50">
-                    {ep}
-                  </button>
-                ))}
-              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-6 p-5">
