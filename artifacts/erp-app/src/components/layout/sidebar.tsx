@@ -39,18 +39,12 @@ const financeItems = [
 
 const teamItems = [
   { name: "Companies & Team", href: "/team", icon: Building2, proOnly: true },
-  { name: "Approvals", href: "/approvals", icon: ClipboardList, proOnly: true },
-  { name: "Workflows", href: "/workflows", icon: Workflow, proOnly: true },
   { name: "Tasks & Reminders", href: "/tasks", icon: CheckSquare },
-  { name: "Audit Log", href: "/audit-log", icon: History },
 ];
 
 const ecosystemItems = [
   { name: "Integrations", href: "/integrations", icon: Plug, proOnly: true },
   { name: "Webhooks & Events", href: "/webhooks", icon: Webhook, proOnly: true },
-  { name: "Import / Export", href: "/import-export", icon: ArrowUpDown, proOnly: true },
-  { name: "Custom Fields", href: "/custom-fields", icon: SlidersHorizontal, proOnly: true },
-  { name: "System Health", href: "/system-health", icon: Activity, proOnly: true },
 ];
 
 const v5Items = [
@@ -58,13 +52,11 @@ const v5Items = [
   { name: "Reconciliation", href: "/reconciliation", icon: Recon, proOnly: true },
   { name: "Policy Engine", href: "/policy", icon: ShieldAlert, proOnly: true },
   { name: "Enterprise Admin", href: "/enterprise", icon: Building, proOnly: true },
-  { name: "Add-ons", href: "/addons", icon: Puzzle, proOnly: true },
 ];
 
 const cloudItems = [
   { name: "Billing", href: "/billing", icon: Crown },
   { name: "Cloud Backup", href: "/backup", icon: Database },
-  { name: "Devices", href: "/devices", icon: Monitor },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

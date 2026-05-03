@@ -40,15 +40,8 @@ import Expenses from "@/pages/expenses";
 import Vendors from "@/pages/vendors";
 import Team from "@/pages/team";
 import Approvals from "@/pages/approvals";
-import AuditLog from "@/pages/audit-log";
-import Workflows from "@/pages/workflows";
 
 // V4 pages
-import Integrations from "@/pages/integrations";
-import Webhooks from "@/pages/webhooks";
-import ImportExport from "@/pages/import-export";
-import CustomFields from "@/pages/custom-fields";
-import SystemHealth from "@/pages/system-health";
 
 // V5 pages
 import AiAgents from "@/pages/ai-agents";
@@ -56,7 +49,6 @@ import Reconciliation from "@/pages/reconciliation";
 import Policy from "@/pages/policy";
 import Tasks from "@/pages/tasks";
 import Enterprise from "@/pages/enterprise";
-import Addons from "@/pages/addons";
 
 const queryClient = new QueryClient();
 
@@ -90,32 +82,11 @@ function AuthenticatedApp() {
           <Route path="/approvals">
             <ProGate feature="Approvals"><Approvals /></ProGate>
           </Route>
-          <Route path="/audit-log" component={AuditLog} />
-          <Route path="/workflows">
-            <ProGate feature="Workflows & Automation"><Workflows /></ProGate>
-          </Route>
           {/* Cloud / account */}
           <Route path="/billing" component={Billing} />
           <Route path="/backup" component={Backup} />
-          <Route path="/devices" component={Devices} />
           <Route path="/ai" component={AiAssistant} />
           <Route path="/settings" component={Settings} />
-          {/* V4 routes — Pro only */}
-          <Route path="/integrations">
-            <ProGate feature="Integrations Hub"><Integrations /></ProGate>
-          </Route>
-          <Route path="/webhooks">
-            <ProGate feature="Webhooks & Events"><Webhooks /></ProGate>
-          </Route>
-          <Route path="/import-export">
-            <ProGate feature="Import / Export"><ImportExport /></ProGate>
-          </Route>
-          <Route path="/custom-fields">
-            <ProGate feature="Custom Fields"><CustomFields /></ProGate>
-          </Route>
-          <Route path="/system-health">
-            <ProGate feature="System Health"><SystemHealth /></ProGate>
-          </Route>
           <Route path="/branding">
             {() => { window.location.replace("/settings"); return null; }}
           </Route>
@@ -132,9 +103,6 @@ function AuthenticatedApp() {
           <Route path="/tasks" component={Tasks} />
           <Route path="/enterprise">
             <ProGate feature="Enterprise Admin"><Enterprise /></ProGate>
-          </Route>
-          <Route path="/addons">
-            <ProGate feature="Add-ons & Extensions"><Addons /></ProGate>
           </Route>
           <Route component={NotFound} />
         </Switch>
