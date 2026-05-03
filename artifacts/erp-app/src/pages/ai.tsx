@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, Sparkles, AlertCircle, Bot, User } from "lucide-react";
+import { Loader2, Send, Sparkles, AlertCircle, Bot, User, CheckCircle2, Webhook, Workflow, BellRing, FileText } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -27,6 +27,13 @@ export default function AiAssistant() {
     "Analyze my profit and loss — where can I save?",
     "How is my revenue trending compared to last month?",
     "What actions should I take this week?",
+  ];
+
+  const actionExamples = [
+    { icon: FileText, title: "Create invoices", text: "Create invoice for Rajan Mehta, invoice number 2301, 18% GST" },
+    { icon: BellRing, title: "Set alerts", text: "Notify me when stock goes below 10 units" },
+    { icon: Workflow, title: "Automate work", text: "When an invoice is paid, mark the workflow as completed" },
+    { icon: Webhook, title: "Connect webhooks", text: "Send invoice paid events to my webhook URL" },
   ];
 
   useEffect(() => {
@@ -55,14 +62,14 @@ export default function AiAssistant() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm">
             <Sparkles className="h-4.5 w-4.5 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">AI Assistant</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Powered by your live business data</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Chat-first business actions, insights, automations, and alerts</p>
           </div>
         </div>
         {usage && (
@@ -82,6 +89,28 @@ export default function AiAssistant() {
         )}
       </div>
 
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 mb-4">
+        {actionExamples.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.title}
+              onClick={() => handleSend(item.text)}
+              disabled={sendPromptMutation.isPending || isLimitReached}
+              className="text-left rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:border-indigo-300 hover:shadow-sm transition-all disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center">
+                  <Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="font-semibold text-sm text-gray-900 dark:text-white">{item.title}</div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.text}</p>
+            </button>
+          );
+        })}
+      </div>
+
       <Card className="flex-1 flex flex-col overflow-hidden rounded-2xl border-gray-200 dark:border-gray-800 shadow-sm">
         {/* Messages area */}
         <CardContent className="flex-1 overflow-y-auto p-0" ref={scrollRef}>
@@ -96,7 +125,7 @@ export default function AiAssistant() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">How can I help you today?</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-                I can analyse your invoices, products, transactions and give you smart business summaries — just like having a CFO in your pocket.
+                Ask me to create invoices, set alerts, run automations, trigger workflows, or analyse your business data — all from chat.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-lg">
                 {examplePrompts.map((ep, i) => (
@@ -132,6 +161,12 @@ export default function AiAssistant() {
                     </div>
                     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl rounded-tl-sm px-5 py-4 max-w-[85%] shadow-sm">
                       <MarkdownRenderer content={msg.response} />
+                      {msg.response.toLowerCase().includes("confirm") ? (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Ready for your approval
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -171,7 +206,7 @@ export default function AiAssistant() {
               onSubmit={(e) => { e.preventDefault(); handleSend(prompt); }}
             >
               <Input
-                placeholder="Ask me anything about your business..."
+                placeholder="Tell me what to do — create, alert, automate, or analyse..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 disabled={sendPromptMutation.isPending}
