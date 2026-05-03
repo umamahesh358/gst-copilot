@@ -31,7 +31,6 @@ import policyRouter from "./policy";
 import tasksRouter from "./tasks";
 import addonsRouter from "./addons";
 import enterpriseRouter from "./enterprise";
-import mobileRouter from "./mobile";
 
 const router: IRouter = Router();
 
@@ -67,6 +66,5 @@ router.use(policyRouter);
 router.use(tasksRouter);
 router.use(addonsRouter);
 router.use(enterpriseRouter);
-router.use(mobileRouter);
 
 export default router;

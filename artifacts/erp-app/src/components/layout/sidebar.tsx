@@ -7,7 +7,7 @@ import {
   ShoppingCart, Building2, ClipboardList, History, Workflow, Truck,
   Plug, Webhook, ArrowUpDown, SlidersHorizontal, Activity,
   Lock, Bot, ArrowLeftRight as Recon, ShieldAlert, CheckSquare,
-  Puzzle, Smartphone, Building,
+  Puzzle, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -59,7 +59,6 @@ const v5Items = [
   { name: "Policy Engine", href: "/policy", icon: ShieldAlert, proOnly: true },
   { name: "Enterprise Admin", href: "/enterprise", icon: Building, proOnly: true },
   { name: "Add-ons", href: "/addons", icon: Puzzle, proOnly: true },
-  { name: "Mobile Companion", href: "/mobile-summary", icon: Smartphone },
 ];
 
 const cloudItems = [

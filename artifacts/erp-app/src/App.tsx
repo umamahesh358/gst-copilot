@@ -57,7 +57,6 @@ import Policy from "@/pages/policy";
 import Tasks from "@/pages/tasks";
 import Enterprise from "@/pages/enterprise";
 import Addons from "@/pages/addons";
-import MobileSummary from "@/pages/mobile-summary";
 
 const queryClient = new QueryClient();
 
@@ -137,7 +136,6 @@ function AuthenticatedApp() {
           <Route path="/addons">
             <ProGate feature="Add-ons & Extensions"><Addons /></ProGate>
           </Route>
-          <Route path="/mobile-summary" component={MobileSummary} />
           <Route component={NotFound} />
         </Switch>
       </AppLayout>
