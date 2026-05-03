@@ -38,4 +38,3 @@ externalPort = 3000
 [userenv]
 
 [userenv.shared]
-DATABASE_URL = "postgresql://postgres:Umamaheshs@2005@db.eohacksloinnlnghlhbi.supabase.co:5432/postgres"
