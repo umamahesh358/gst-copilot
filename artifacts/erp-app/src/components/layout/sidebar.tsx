@@ -78,7 +78,6 @@ const ecosystemItems = [
   { name: "Import / Export", href: "/import-export", icon: ArrowUpDown, proOnly: true },
   { name: "Custom Fields", href: "/custom-fields", icon: SlidersHorizontal, proOnly: true },
   { name: "System Health", href: "/system-health", icon: Activity, proOnly: true },
-  { name: "Branding", href: "/branding", icon: Palette, proOnly: true },
 ];
 
 const cloudItems = [

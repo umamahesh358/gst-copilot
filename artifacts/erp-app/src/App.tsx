@@ -126,9 +126,7 @@ function AuthenticatedApp() {
             </ProGate>
           </Route>
           <Route path="/branding">
-            <ProGate feature="Branding & Deployment">
-              <Branding />
-            </ProGate>
+            {() => { window.location.replace("/settings"); return null; }}
           </Route>
           <Route component={NotFound} />
         </Switch>
