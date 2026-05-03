@@ -41,7 +41,7 @@ router.patch("/settings", requireAuth, async (req: AuthRequest, res) => {
   if (data.taxLabel !== undefined) updateData.taxLabel = data.taxLabel;
 
   const [settings] = await db.update(appSettingsTable)
-    .set(updateData as Parameters<typeof db.update>[0])
+    .set(updateData as any)
     .where(eq(appSettingsTable.userId, req.userId!))
     .returning();
 

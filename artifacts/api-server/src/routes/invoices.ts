@@ -100,7 +100,7 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
     subtotal: String(subtotal),
     gstAmount: String(gstAmount),
     totalAmount: String(totalAmount),
-    dueDate: data.dueDate,
+    dueDate: data.dueDate ? data.dueDate.toISOString().split("T")[0] : null,
     notes: data.notes,
   }).returning();
 
@@ -144,7 +144,7 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.get("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
   const [invoice] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id)).limit(1);
   if (!invoice) {
     res.status(404).json({ error: "Not found", message: "Invoice not found" });
@@ -164,7 +164,7 @@ router.get("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.patch("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
   const result = UpdateInvoiceStatusBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });
@@ -179,7 +179,7 @@ router.patch("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
     updateData.paidAt = new Date();
   }
 
-  const [invoice] = await db.update(invoicesTable).set(updateData as Parameters<typeof db.update>[0])
+  const [invoice] = await db.update(invoicesTable).set(updateData as any)
     .where(eq(invoicesTable.id, id))
     .returning();
 

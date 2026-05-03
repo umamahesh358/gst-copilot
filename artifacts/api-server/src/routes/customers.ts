@@ -70,7 +70,7 @@ router.post("/customers", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.get("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
   const [customer] = await db.select().from(customersTable)
     .where(eq(customersTable.id, id))
     .limit(1);

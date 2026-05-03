@@ -12,6 +12,13 @@ import billingRouter from "./billing";
 import backupRouter from "./backup";
 import devicesRouter from "./devices";
 import notificationsRouter from "./notifications";
+import analyticsRouter from "./analytics";
+import vendorsRouter from "./vendors";
+import expensesRouter from "./expenses";
+import approvalsRouter from "./approvals";
+import automationRouter from "./automation";
+import auditRouter from "./audit";
+import companiesRouter from "./companies";
 
 const router: IRouter = Router();
 
@@ -28,5 +35,12 @@ router.use(billingRouter);
 router.use(backupRouter);
 router.use(devicesRouter);
 router.use(notificationsRouter);
+router.use(analyticsRouter);
+router.use(vendorsRouter);
+router.use(expensesRouter);
+router.use(approvalsRouter);
+router.use(automationRouter);
+router.use(auditRouter);
+router.use(companiesRouter);
 
 export default router;

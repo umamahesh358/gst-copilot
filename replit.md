@@ -1,7 +1,9 @@
-# BizOS — AI-Powered ERP for Indian SMEs
+# BizOS — AI-Powered ERP for Indian SMEs (V3)
 
 ## Overview
-A production-grade ERP web application for Indian small and medium enterprises. Features GST-aware invoicing, inventory management, double-entry accounting, an AI business assistant with markdown rendering, a dashboard AI insight widget, subscription/billing (Razorpay-ready), cloud backup/restore, device binding, notifications, and audit logs.
+A production-grade ERP web application for Indian small and medium enterprises. V3 extends V2 into an intelligence, automation, and collaboration platform.
+
+Features: GST-aware invoicing, inventory management, double-entry accounting, AI business assistant, BI analytics dashboard, expense tracking, vendor management, approval workflows, automation rules, multi-company/team, full audit log, cloud backup/restore, device binding, notifications.
 
 ## Architecture
 
@@ -28,57 +30,80 @@ lib/
 - **Contract**: OpenAPI 3.1 → Orval codegen → React Query hooks + Zod schemas
 
 ## Database Schema (lib/db/src/schema/)
+
+### V2 Tables
 - `users` — accounts with plan (free/pro), onboarding state, AI prompt usage
 - `products` — inventory with GST rate, cost price, low stock threshold, `hsnCode`
 - `customers` — GST number, contact info
-- `invoices` — GST-calculated totals, status tracking; added fields: `type` (sale/purchase), `buyerGstin`, `buyerAddress`, `sellerName`, `sellerGstin`, `sellerAddress`
+- `invoices` — GST-calculated totals, status tracking; type (sale/purchase), GSTIN fields
 - `invoice_items` — line items with `hsnCode`
 - `transactions` — double-entry income/expense ledger
 - `ai_prompt_logs` — AI query history with intent classification
 - `app_settings` — per-user business config, theme, GST settings
 - `activity_log` — audit trail for dashboard feed
 
+### V3 Tables
+- `companies` — multi-company support (name, GSTIN, address, type)
+- `company_members` — team membership with roles (owner/admin/member/viewer)
+- `vendors` — vendor/supplier directory (GSTIN, contact, payment terms, category)
+- `expenses` — expense tracking (amount, category, vendor, status, receipt URL)
+- `approval_requests` — multi-level approval workflows (expense/invoice/vendor)
+- `automation_rules` — trigger-action automation engine (event-driven rules)
+- `document_uploads` — file/document management (receipts, contracts, etc.)
+
 ## Invoice Status Values
-- `pending` (default, previously `unpaid`)
-- `verified` (previously `paid`)
-- `flagged` (previously `overdue`)
-- `draft`, `paid`, `unpaid`, `overdue` (legacy, still accepted by API)
+- `pending` (default), `verified`, `flagged`, `draft`, `paid`, `unpaid`, `overdue`
 
 ## API Modules (artifacts/api-server/src/routes/)
+
+### V2 Routes
 - `/api/auth/*` — signup, login, logout, me, onboard
 - `/api/dashboard/*` — KPI summary, revenue chart, recent activity
-- `/api/products/*` — CRUD, low-stock filter (supports `hsnCode`)
+- `/api/products/*` — CRUD, low-stock filter
 - `/api/customers/*` — CRUD with invoice summary enrichment
-- `/api/invoices/*` — CRUD with GST auto-calc, status updates; supports `type`, GSTIN, address fields, `hsnCode` on items
+- `/api/invoices/*` — CRUD with GST auto-calc, status updates
 - `/api/accounting/*` — transactions ledger, P&L summary by period
 - `/api/ai/*` — prompt, history, usage (free plan: 3 prompts, pro: unlimited)
 - `/api/settings/*` — business settings CRUD
 - `/api/notifications/*` — notification CRUD
+- `/api/billing/*`, `/api/backup/*`, `/api/devices/*` — cloud management
+
+### V3 Routes
+- `/api/analytics/*` — revenue trends, profit margins, GST summary, category breakdown
+- `/api/vendors/*` — vendor directory CRUD, stats
+- `/api/expenses/*` — expense tracking CRUD, category totals
+- `/api/approvals/*` — approval request lifecycle (create, approve, reject, list)
+- `/api/automation/*` — automation rules CRUD, toggle enable/disable
+- `/api/audit/*` — immutable audit log (all writes logged automatically)
+- `/api/companies/*` — multi-company CRUD, team member management
 
 ## Frontend Pages (artifacts/erp-app/src/pages/)
+
+### V2 Pages
 - `login.tsx`, `signup.tsx`, `onboarding.tsx` — Auth flow
 - `dashboard.tsx` — KPI cards, revenue/expense area chart, activity feed, AI widget
-- `invoices.tsx` — Invoice list with GSTIN/Type/Status columns, filters
-- `invoice-generator.tsx` — Full GST invoice generator with Seller/Buyer GSTIN, HSN codes, GST breakup sidebar, Print/PDF
-- `new-invoice.tsx` — Quick create invoice form
-- `invoice-detail.tsx` — Invoice detail view
-- `inventory.tsx` — Product list with stats cards, HSN, buy/sell price, margin %
-- `new-product.tsx` — Add product with HSN code field
-- `edit-product.tsx` — Edit existing product
-- `customers.tsx` — Customer list and management
-- `transactions.tsx` — Transaction ledger
-- `accounting.tsx` — 3-tab: Ledger / P&L / Balance Sheet
-- `accounting-summary.tsx` — Accounting summary
-- `credit-debit.tsx` — Credit & debit notes
-- `gst-report.tsx` — 4-tab GSTR reports: GSTR-1 / GSTR-2 / GSTR-3B / ITC with charts
-- `compliance-alerts.tsx` — AI-generated compliance alerts (client-side computed from invoices + transactions data)
+- `invoices.tsx`, `invoice-generator.tsx`, `new-invoice.tsx`, `invoice-detail.tsx`
+- `inventory.tsx`, `new-product.tsx`, `edit-product.tsx`
+- `customers.tsx`, `transactions.tsx`, `accounting.tsx`, `accounting-summary.tsx`
+- `credit-debit.tsx`, `gst-report.tsx`, `compliance-alerts.tsx`
 - `ai.tsx` — AI chat assistant with usage meter
-- `billing.tsx`, `backup.tsx`, `devices.tsx` — Cloud management pages
-- `settings.tsx` — Business settings
+- `billing.tsx`, `backup.tsx`, `devices.tsx`, `settings.tsx`
 
-## Sidebar Navigation
-Flat nav with indigo-600 active highlight:
-Dashboard → Invoices → Invoice Generator → Inventory → Customers → Transactions → Accounting → Credit & Debit → GST Report → Compliance Alerts → AI Assistant → Settings | Cloud: Billing → Cloud Backup → Devices
+### V3 Pages
+- `analytics.tsx` — BI dashboard: revenue/profit trends, GST breakdown, category charts
+- `expenses.tsx` — Expense tracking with category totals and approval status
+- `vendors.tsx` — Vendor directory with stats (total spend, count, pending payments)
+- `approvals.tsx` — Approval queue (pending/approved/rejected) with action buttons
+- `audit-log.tsx` — Full immutable audit trail with filters
+- `workflows.tsx` — Automation rules builder (trigger → action rules)
+- `team.tsx` — Team members management with role assignments
+
+## Sidebar Navigation (V3 — 5 sections)
+1. **Core**: Dashboard, Analytics
+2. **Operations**: Invoices, Invoice Generator, Inventory, Customers, Vendors, Expenses
+3. **Finance & GST**: Transactions, Accounting, Credit & Debit, GST Report, Compliance Alerts
+4. **Team & Automation**: Approvals, Workflows, Team, Audit Log, AI Assistant
+5. **Cloud & Account**: Billing, Cloud Backup, Devices, Settings
 
 ## Key Design Decisions
 - JWT stored in `localStorage` as `bizos_token`; customFetch reads it automatically
@@ -91,8 +116,10 @@ Dashboard → Invoices → Invoice Generator → Inventory → Customers → Tra
 - `useTheme` must be imported from `next-themes`, not from `@/components/theme-provider`
 - Wouter base URL from `import.meta.env.BASE_URL`; all routes use absolute paths
 - Compliance Alerts page is entirely frontend-computed — no separate backend route needed
+- `date` columns in Drizzle require ISO string format — never pass `Date` objects directly
 - DB migration: `pnpm --filter @workspace/db run push-force`
-- Codegen: `pnpm --filter @workspace/api-spec run codegen` (typecheck:libs errors in integrations-openai-ai-server are pre-existing and can be ignored)
+- Codegen: `pnpm --filter @workspace/api-spec run codegen`
+- integrations-openai-ai-server has a pre-existing build issue — use `@ts-expect-error` in ai.ts
 
 ## Credentials (Demo Account)
 - Email: `priya@techsolutions.in`

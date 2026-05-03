@@ -95,7 +95,7 @@ router.post("/devices/register", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.patch("/devices/:id/revoke", requireAuth, async (req: AuthRequest, res) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   const [device] = await db.select().from(devicesTable)
     .where(and(eq(devicesTable.id, parseInt(id)), eq(devicesTable.userId, req.userId!)))
     .limit(1);
@@ -126,7 +126,7 @@ router.patch("/devices/:id/revoke", requireAuth, async (req: AuthRequest, res) =
 });
 
 router.delete("/devices/:id", requireAuth, async (req: AuthRequest, res) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   const [device] = await db.select().from(devicesTable)
     .where(and(eq(devicesTable.id, parseInt(id)), eq(devicesTable.userId, req.userId!)))
     .limit(1);

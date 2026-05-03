@@ -8,6 +8,15 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppLayout } from "@/components/layout/app-layout";
 import NotFound from "@/pages/not-found";
 
+// V3 pages
+import Analytics from "@/pages/analytics";
+import Expenses from "@/pages/expenses";
+import Vendors from "@/pages/vendors";
+import Team from "@/pages/team";
+import Approvals from "@/pages/approvals";
+import AuditLog from "@/pages/audit-log";
+import Workflows from "@/pages/workflows";
+
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Onboarding from "@/pages/onboarding";
@@ -54,6 +63,15 @@ function AuthenticatedApp() {
           <Route path="/credit-debit" component={CreditDebit} />
           <Route path="/gst-report" component={GstReport} />
           <Route path="/alerts" component={ComplianceAlerts} />
+          {/* V3 routes */}
+          <Route path="/analytics" component={Analytics} />
+          <Route path="/expenses" component={Expenses} />
+          <Route path="/vendors" component={Vendors} />
+          <Route path="/team" component={Team} />
+          <Route path="/approvals" component={Approvals} />
+          <Route path="/audit-log" component={AuditLog} />
+          <Route path="/workflows" component={Workflows} />
+          {/* Cloud / account */}
           <Route path="/billing" component={Billing} />
           <Route path="/backup" component={Backup} />
           <Route path="/devices" component={Devices} />

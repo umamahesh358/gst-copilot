@@ -22,6 +22,12 @@ import {
   Monitor,
   Zap,
   ShieldCheck,
+  ShoppingCart,
+  Building2,
+  ClipboardList,
+  History,
+  Workflow,
+  Truck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,25 +35,41 @@ import { Badge } from "@/components/ui/badge";
 import { useLogout } from "@workspace/api-client-react";
 import { useTheme } from "next-themes";
 
-const navItems = [
+const coreItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "AI Assistant", href: "/ai", icon: Sparkles },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+];
+
+const operationsItems = [
   { name: "Invoices", href: "/invoices", icon: Receipt },
   { name: "Invoice Generator", href: "/invoice-generator", icon: FileText },
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Customers", href: "/customers", icon: Users },
+  { name: "Expenses", href: "/expenses", icon: ShoppingCart },
+  { name: "Vendors", href: "/vendors", icon: Truck },
+];
+
+const financeItems = [
   { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
   { name: "Accounting", href: "/accounting", icon: Calculator },
   { name: "Credit & Debit", href: "/credit-debit", icon: CreditCard },
   { name: "GST Report", href: "/gst-report", icon: BarChart3 },
   { name: "Compliance Alerts", href: "/alerts", icon: ShieldCheck },
-  { name: "AI Assistant", href: "/ai", icon: Sparkles },
-  { name: "Settings", href: "/settings", icon: Settings },
+];
+
+const teamItems = [
+  { name: "Companies & Team", href: "/team", icon: Building2 },
+  { name: "Approvals", href: "/approvals", icon: ClipboardList },
+  { name: "Workflows", href: "/workflows", icon: Workflow },
+  { name: "Audit Log", href: "/audit-log", icon: History },
 ];
 
 const cloudItems = [
   { name: "Billing", href: "/billing", icon: Crown },
   { name: "Cloud Backup", href: "/backup", icon: Database },
   { name: "Devices", href: "/devices", icon: Monitor },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -68,6 +90,7 @@ export function Sidebar() {
     if (href === "/invoices") return location.startsWith("/invoices") && location !== "/invoice-generator";
     if (href === "/inventory/new") return location === "/inventory/new";
     if (href === "/inventory") return location.startsWith("/inventory") && location !== "/inventory/new";
+    if (href === "/accounting") return location === "/accounting" || location.startsWith("/accounting");
     return location === href || (href !== "/" && location.startsWith(href));
   };
 
@@ -89,6 +112,10 @@ export function Sidebar() {
     );
   };
 
+  const SectionLabel = ({ label }: { label: string }) => (
+    <p className="px-3 mb-1 mt-4 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600">{label}</p>
+  );
+
   return (
     <div className="flex h-full w-60 flex-col bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800">
       {/* Logo */}
@@ -99,6 +126,7 @@ export function Sidebar() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-base text-gray-900 dark:text-white tracking-tight">BizOS</span>
+            <span className="text-[9px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 rounded px-1 py-0.5">V3</span>
             {user?.plan === "pro" && (
               <span className="text-[9px] font-semibold bg-amber-400 text-amber-900 rounded px-1 py-0.5">PRO</span>
             )}
@@ -108,15 +136,33 @@ export function Sidebar() {
 
       {/* Nav */}
       <div className="flex-1 overflow-y-auto py-3 px-3">
+        {/* Core */}
         <div className="space-y-0.5">
-          {navItems.map((item) => <NavItem key={item.name} item={item} />)}
+          {coreItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-          <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600">Cloud</p>
-          <div className="space-y-0.5">
-            {cloudItems.map((item) => <NavItem key={item.name} item={item} />)}
-          </div>
+        {/* Operations */}
+        <SectionLabel label="Operations" />
+        <div className="space-y-0.5">
+          {operationsItems.map((item) => <NavItem key={item.name} item={item} />)}
+        </div>
+
+        {/* Finance */}
+        <SectionLabel label="Finance & GST" />
+        <div className="space-y-0.5">
+          {financeItems.map((item) => <NavItem key={item.name} item={item} />)}
+        </div>
+
+        {/* Team & Automation */}
+        <SectionLabel label="Team & Automation" />
+        <div className="space-y-0.5">
+          {teamItems.map((item) => <NavItem key={item.name} item={item} />)}
+        </div>
+
+        {/* Cloud */}
+        <SectionLabel label="Cloud & Account" />
+        <div className="space-y-0.5">
+          {cloudItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
       </div>
 
@@ -133,7 +179,7 @@ export function Sidebar() {
                 <Badge className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 border-0 px-1.5 py-0">Basic</Badge>
               </div>
               <p className="text-xs text-indigo-700/70 dark:text-indigo-400 mb-2.5 leading-snug">
-                Upgrade to Pro for unlimited AI, cloud backup &amp; more.
+                Upgrade to Pro for unlimited AI, analytics &amp; automation.
               </p>
               <div className="w-full h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center font-medium transition-colors">
                 <Crown className="mr-1.5 h-3 w-3" /> Upgrade to Pro

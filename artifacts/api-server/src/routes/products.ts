@@ -77,7 +77,7 @@ router.post("/products", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.get("/products/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
   const [product] = await db.select().from(productsTable)
     .where(and(eq(productsTable.id, id), eq(productsTable.isDeleted, false)))
     .limit(1);
@@ -97,7 +97,7 @@ router.get("/products/:id", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
   const result = UpdateProductBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });
@@ -119,7 +119,7 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
   if (data.category !== undefined) updateData.category = data.category;
 
   const [product] = await db.update(productsTable)
-    .set(updateData as Parameters<typeof db.update>[0])
+    .set(updateData as any)
     .where(eq(productsTable.id, id))
     .returning();
 
@@ -147,7 +147,7 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.delete("/products/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
   const [product] = await db.update(productsTable)
     .set({ isDeleted: true, updatedAt: new Date() })
     .where(eq(productsTable.id, id))

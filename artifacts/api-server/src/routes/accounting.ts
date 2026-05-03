@@ -49,7 +49,7 @@ router.post("/accounting/transactions", requireAuth, async (req: AuthRequest, re
     category: data.category,
     description: data.description,
     amount: String(data.amount),
-    date: data.date,
+    date: data.date instanceof Date ? data.date.toISOString().split("T")[0] : data.date,
     invoiceId: data.invoiceId,
     referenceNumber: data.referenceNumber,
   }).returning();

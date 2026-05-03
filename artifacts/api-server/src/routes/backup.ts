@@ -139,7 +139,7 @@ router.post("/backup/create", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.post("/backup/restore/:id", requireAuth, async (req: AuthRequest, res) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
   if (!user) { res.status(401).json({ error: "Unauthorized", message: "User not found" }); return; }
 
@@ -188,7 +188,7 @@ router.post("/backup/restore/:id", requireAuth, async (req: AuthRequest, res) =>
 });
 
 router.delete("/backup/:id", requireAuth, async (req: AuthRequest, res) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   const [backup] = await db.select().from(backupJobsTable)
     .where(and(eq(backupJobsTable.id, parseInt(id)), eq(backupJobsTable.userId, req.userId!)))
     .limit(1);

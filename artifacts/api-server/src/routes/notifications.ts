@@ -28,7 +28,7 @@ router.get("/notifications", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.patch("/notifications/:id/read", requireAuth, async (req: AuthRequest, res) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   const [notif] = await db.select().from(notificationsTable)
     .where(and(eq(notificationsTable.id, parseInt(id)), eq(notificationsTable.userId, req.userId!)))
     .limit(1);
@@ -50,7 +50,7 @@ router.patch("/notifications/read-all", requireAuth, async (req: AuthRequest, re
 });
 
 router.delete("/notifications/:id", requireAuth, async (req: AuthRequest, res) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   await db.delete(notificationsTable)
     .where(and(eq(notificationsTable.id, parseInt(id)), eq(notificationsTable.userId, req.userId!)));
   res.json({ success: true });
