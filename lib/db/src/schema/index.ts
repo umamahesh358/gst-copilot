@@ -29,3 +29,10 @@ export * from "./import_jobs";
 export * from "./export_jobs";
 export * from "./custom_fields";
 export * from "./branding_settings";
+// V5 tables
+export * from "./ai_agent_runs";
+export * from "./reconciliation";
+export * from "./policy";
+export * from "./tasks";
+export * from "./addons";
+export * from "./enterprise_settings";

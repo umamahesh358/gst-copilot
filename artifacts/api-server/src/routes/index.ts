@@ -24,6 +24,14 @@ import webhooksRouter from "./webhooks";
 import importExportRouter from "./import-export";
 import customFieldsRouter from "./custom-fields";
 import systemRouter from "./system";
+// V5 routes
+import agentRunsRouter from "./agent-runs";
+import reconciliationRouter from "./reconciliation";
+import policyRouter from "./policy";
+import tasksRouter from "./tasks";
+import addonsRouter from "./addons";
+import enterpriseRouter from "./enterprise";
+import mobileRouter from "./mobile";
 
 const router: IRouter = Router();
 
@@ -52,5 +60,13 @@ router.use(webhooksRouter);
 router.use(importExportRouter);
 router.use(customFieldsRouter);
 router.use(systemRouter);
+// V5
+router.use(agentRunsRouter);
+router.use(reconciliationRouter);
+router.use(policyRouter);
+router.use(tasksRouter);
+router.use(addonsRouter);
+router.use(enterpriseRouter);
+router.use(mobileRouter);
 
 export default router;

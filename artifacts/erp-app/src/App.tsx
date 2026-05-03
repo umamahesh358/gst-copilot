@@ -49,7 +49,15 @@ import Webhooks from "@/pages/webhooks";
 import ImportExport from "@/pages/import-export";
 import CustomFields from "@/pages/custom-fields";
 import SystemHealth from "@/pages/system-health";
-import Branding from "@/pages/branding";
+
+// V5 pages
+import AiAgents from "@/pages/ai-agents";
+import Reconciliation from "@/pages/reconciliation";
+import Policy from "@/pages/policy";
+import Tasks from "@/pages/tasks";
+import Enterprise from "@/pages/enterprise";
+import Addons from "@/pages/addons";
+import MobileSummary from "@/pages/mobile-summary";
 
 const queryClient = new QueryClient();
 
@@ -78,20 +86,14 @@ function AuthenticatedApp() {
           <Route path="/expenses" component={Expenses} />
           <Route path="/vendors" component={Vendors} />
           <Route path="/team">
-            <ProGate feature="Companies & Team">
-              <Team />
-            </ProGate>
+            <ProGate feature="Companies & Team"><Team /></ProGate>
           </Route>
           <Route path="/approvals">
-            <ProGate feature="Approvals">
-              <Approvals />
-            </ProGate>
+            <ProGate feature="Approvals"><Approvals /></ProGate>
           </Route>
           <Route path="/audit-log" component={AuditLog} />
           <Route path="/workflows">
-            <ProGate feature="Workflows & Automation">
-              <Workflows />
-            </ProGate>
+            <ProGate feature="Workflows & Automation"><Workflows /></ProGate>
           </Route>
           {/* Cloud / account */}
           <Route path="/billing" component={Billing} />
@@ -101,33 +103,41 @@ function AuthenticatedApp() {
           <Route path="/settings" component={Settings} />
           {/* V4 routes — Pro only */}
           <Route path="/integrations">
-            <ProGate feature="Integrations Hub">
-              <Integrations />
-            </ProGate>
+            <ProGate feature="Integrations Hub"><Integrations /></ProGate>
           </Route>
           <Route path="/webhooks">
-            <ProGate feature="Webhooks & Events">
-              <Webhooks />
-            </ProGate>
+            <ProGate feature="Webhooks & Events"><Webhooks /></ProGate>
           </Route>
           <Route path="/import-export">
-            <ProGate feature="Import / Export">
-              <ImportExport />
-            </ProGate>
+            <ProGate feature="Import / Export"><ImportExport /></ProGate>
           </Route>
           <Route path="/custom-fields">
-            <ProGate feature="Custom Fields">
-              <CustomFields />
-            </ProGate>
+            <ProGate feature="Custom Fields"><CustomFields /></ProGate>
           </Route>
           <Route path="/system-health">
-            <ProGate feature="System Health">
-              <SystemHealth />
-            </ProGate>
+            <ProGate feature="System Health"><SystemHealth /></ProGate>
           </Route>
           <Route path="/branding">
             {() => { window.location.replace("/settings"); return null; }}
           </Route>
+          {/* V5 routes — Pro only */}
+          <Route path="/ai-agents">
+            <ProGate feature="AI Agent Workspace"><AiAgents /></ProGate>
+          </Route>
+          <Route path="/reconciliation">
+            <ProGate feature="Reconciliation Engine"><Reconciliation /></ProGate>
+          </Route>
+          <Route path="/policy">
+            <ProGate feature="Policy & Compliance"><Policy /></ProGate>
+          </Route>
+          <Route path="/tasks" component={Tasks} />
+          <Route path="/enterprise">
+            <ProGate feature="Enterprise Admin"><Enterprise /></ProGate>
+          </Route>
+          <Route path="/addons">
+            <ProGate feature="Add-ons & Extensions"><Addons /></ProGate>
+          </Route>
+          <Route path="/mobile-summary" component={MobileSummary} />
           <Route component={NotFound} />
         </Switch>
       </AppLayout>
@@ -141,14 +151,10 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/onboarding">
-        <AuthGuard>
-          <Onboarding />
-        </AuthGuard>
+        <AuthGuard><Onboarding /></AuthGuard>
       </Route>
       <Route path="/" component={() => <Login />} />
-      <Route path="/:rest*">
-        <AuthenticatedApp />
-      </Route>
+      <Route path="/:rest*"><AuthenticatedApp /></Route>
     </Switch>
   );
 }

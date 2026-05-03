@@ -1,43 +1,15 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  LayoutDashboard,
-  Receipt,
-  Package,
-  Calculator,
-  Sparkles,
-  Settings,
-  LogOut,
-  Users,
-  ArrowLeftRight,
-  BarChart3,
-  CreditCard,
-  Bell,
-  FileText,
-  Moon,
-  Sun,
-  TrendingUp,
-  Crown,
-  Database,
-  Monitor,
-  Zap,
-  ShieldCheck,
-  ShoppingCart,
-  Building2,
-  ClipboardList,
-  History,
-  Workflow,
-  Truck,
-  Plug,
-  Webhook,
-  ArrowUpDown,
-  SlidersHorizontal,
-  Activity,
-  Palette,
-  Lock,
+  LayoutDashboard, Receipt, Package, Calculator, Sparkles, Settings,
+  LogOut, Users, ArrowLeftRight, BarChart3, CreditCard, FileText,
+  Moon, Sun, TrendingUp, Crown, Database, Monitor, Zap, ShieldCheck,
+  ShoppingCart, Building2, ClipboardList, History, Workflow, Truck,
+  Plug, Webhook, ArrowUpDown, SlidersHorizontal, Activity,
+  Lock, Bot, ArrowLeftRight as Recon, ShieldAlert, CheckSquare,
+  Puzzle, Smartphone, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLogout } from "@workspace/api-client-react";
 import { useTheme } from "next-themes";
@@ -69,6 +41,7 @@ const teamItems = [
   { name: "Companies & Team", href: "/team", icon: Building2, proOnly: true },
   { name: "Approvals", href: "/approvals", icon: ClipboardList, proOnly: true },
   { name: "Workflows", href: "/workflows", icon: Workflow, proOnly: true },
+  { name: "Tasks & Reminders", href: "/tasks", icon: CheckSquare },
   { name: "Audit Log", href: "/audit-log", icon: History },
 ];
 
@@ -80,12 +53,23 @@ const ecosystemItems = [
   { name: "System Health", href: "/system-health", icon: Activity, proOnly: true },
 ];
 
+const v5Items = [
+  { name: "AI Agents", href: "/ai-agents", icon: Bot, proOnly: true },
+  { name: "Reconciliation", href: "/reconciliation", icon: Recon, proOnly: true },
+  { name: "Policy Engine", href: "/policy", icon: ShieldAlert, proOnly: true },
+  { name: "Enterprise Admin", href: "/enterprise", icon: Building, proOnly: true },
+  { name: "Add-ons", href: "/addons", icon: Puzzle, proOnly: true },
+  { name: "Mobile Companion", href: "/mobile-summary", icon: Smartphone },
+];
+
 const cloudItems = [
   { name: "Billing", href: "/billing", icon: Crown },
   { name: "Cloud Backup", href: "/backup", icon: Database },
   { name: "Devices", href: "/devices", icon: Monitor },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
+
+type NavItem = { name: string; href: string; icon: React.ElementType; proOnly?: boolean };
 
 export function Sidebar() {
   const [location, setLocation] = useLocation();
@@ -111,7 +95,7 @@ export function Sidebar() {
     return location === href || (href !== "/" && location.startsWith(href));
   };
 
-  const NavItem = ({ item }: { item: { name: string; href: string; icon: React.ElementType; proOnly?: boolean } }) => {
+  const NavItem = ({ item }: { item: NavItem }) => {
     const active = isActive(item.href);
     const Icon = item.icon;
     const locked = item.proOnly && !isPro;
@@ -144,10 +128,14 @@ export function Sidebar() {
     );
   };
 
-  const SectionLabel = ({ label, badge, proLocked }: { label: string; badge?: string; proLocked?: boolean }) => (
+  const SectionLabel = ({ label, badge, badgeColor, proLocked }: { label: string; badge?: string; badgeColor?: string; proLocked?: boolean }) => (
     <div className="flex items-center gap-2 px-3 mb-1 mt-4">
       <p className="text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600">{label}</p>
-      {badge && <span className="text-[9px] font-bold bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 rounded px-1 py-0.5">{badge}</span>}
+      {badge && (
+        <span className={cn("text-[9px] font-bold rounded px-1 py-0.5", badgeColor ?? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400")}>
+          {badge}
+        </span>
+      )}
       {proLocked && !isPro && (
         <span className="text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 rounded px-1 py-0.5 flex items-center gap-0.5">
           <Crown className="h-2 w-2" /> PRO
@@ -166,7 +154,7 @@ export function Sidebar() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-base text-gray-900 dark:text-white tracking-tight">BizOS</span>
-            <span className="text-[9px] font-semibold bg-indigo-600 text-white rounded px-1 py-0.5">V4</span>
+            <span className="text-[9px] font-semibold bg-indigo-600 text-white rounded px-1 py-0.5">V5</span>
             {isPro && (
               <span className="text-[9px] font-semibold bg-amber-400 text-amber-900 rounded px-1 py-0.5">PRO</span>
             )}
@@ -176,36 +164,35 @@ export function Sidebar() {
 
       {/* Nav */}
       <div className="flex-1 overflow-y-auto py-3 px-3">
-        {/* Core */}
         <div className="space-y-0.5">
           {coreItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
-        {/* Operations */}
         <SectionLabel label="Operations" />
         <div className="space-y-0.5">
           {operationsItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
-        {/* Finance */}
         <SectionLabel label="Finance & GST" />
         <div className="space-y-0.5">
           {financeItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
-        {/* Team & Automation */}
         <SectionLabel label="Team & Automation" proLocked />
         <div className="space-y-0.5">
           {teamItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
-        {/* Ecosystem — V4 */}
         <SectionLabel label="Ecosystem" badge="V4" proLocked />
         <div className="space-y-0.5">
           {ecosystemItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
-        {/* Cloud */}
+        <SectionLabel label="Intelligence" badge="V5" badgeColor="bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400" proLocked />
+        <div className="space-y-0.5">
+          {v5Items.map((item) => <NavItem key={item.name} item={item} />)}
+        </div>
+
         <SectionLabel label="Cloud & Account" />
         <div className="space-y-0.5">
           {cloudItems.map((item) => <NavItem key={item.name} item={item} />)}
@@ -227,7 +214,7 @@ export function Sidebar() {
               <Badge className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 border-0 px-1.5 py-0">Basic</Badge>
             </div>
             <p className="text-xs text-indigo-700/70 dark:text-indigo-400 mb-2.5 leading-snug">
-              Upgrade to Pro for Ecosystem, Team &amp; Automation and more.
+              Upgrade to Pro for AI Agents, Reconciliation, Policy Engine &amp; more.
             </p>
             <div className="w-full h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center font-medium transition-colors">
               <Crown className="mr-1.5 h-3 w-3" /> Upgrade to Pro
