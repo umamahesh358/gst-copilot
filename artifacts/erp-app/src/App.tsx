@@ -82,10 +82,14 @@ function AuthenticatedApp() {
           <Route path="/approvals">
             <ProGate feature="Approvals"><Approvals /></ProGate>
           </Route>
+          {/* AI command centre with tab routing */}
+          <Route path="/ai" component={AiAssistant} />
+          <Route path="/workflows">{() => { window.location.replace("/erp-app/ai?tab=automations"); return null; }}</Route>
+          <Route path="/integrations">{() => { window.location.replace("/erp-app/ai?tab=integrations"); return null; }}</Route>
+          <Route path="/webhooks">{() => { window.location.replace("/erp-app/ai?tab=webhooks"); return null; }}</Route>
           {/* Cloud / account */}
           <Route path="/billing" component={Billing} />
           <Route path="/backup" component={Backup} />
-          <Route path="/ai" component={AiAssistant} />
           <Route path="/settings" component={Settings} />
           <Route path="/branding">
             {() => { window.location.replace("/settings"); return null; }}

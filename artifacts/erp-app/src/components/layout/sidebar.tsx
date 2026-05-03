@@ -3,11 +3,10 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard, Receipt, Package, Calculator, Sparkles, Settings,
   LogOut, Users, ArrowLeftRight, BarChart3, CreditCard, FileText,
-  Moon, Sun, TrendingUp, Crown, Database, Monitor, Zap, ShieldCheck,
-  ShoppingCart, Building2, ClipboardList, History, Workflow, Truck,
-  Plug, Webhook, ArrowUpDown, SlidersHorizontal, Activity,
+  Moon, Sun, TrendingUp, Crown, Database, Zap, ShieldCheck,
+  ShoppingCart, Building2, Truck,
   Lock, Bot, ArrowLeftRight as Recon, ShieldAlert, CheckSquare,
-  Puzzle, Building,
+  Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -40,11 +39,6 @@ const financeItems = [
 const teamItems = [
   { name: "Companies & Team", href: "/team", icon: Building2, proOnly: true },
   { name: "Tasks & Reminders", href: "/tasks", icon: CheckSquare },
-];
-
-const ecosystemItems = [
-  { name: "Integrations", href: "/integrations", icon: Plug, proOnly: true },
-  { name: "Webhooks & Events", href: "/webhooks", icon: Webhook, proOnly: true },
 ];
 
 const v5Items = [
@@ -172,11 +166,6 @@ export function Sidebar() {
         <SectionLabel label="Team & Automation" proLocked />
         <div className="space-y-0.5">
           {teamItems.map((item) => <NavItem key={item.name} item={item} />)}
-        </div>
-
-        <SectionLabel label="Ecosystem" badge="V4" proLocked />
-        <div className="space-y-0.5">
-          {ecosystemItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
         <SectionLabel label="Intelligence" badge="V5" badgeColor="bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400" proLocked />
