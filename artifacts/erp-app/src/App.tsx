@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { ProGate } from "@/components/auth/pro-gate";
 import { AppLayout } from "@/components/layout/app-layout";
 import NotFound from "@/pages/not-found";
 
@@ -76,23 +77,59 @@ function AuthenticatedApp() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/expenses" component={Expenses} />
           <Route path="/vendors" component={Vendors} />
-          <Route path="/team" component={Team} />
-          <Route path="/approvals" component={Approvals} />
+          <Route path="/team">
+            <ProGate feature="Companies & Team">
+              <Team />
+            </ProGate>
+          </Route>
+          <Route path="/approvals">
+            <ProGate feature="Approvals">
+              <Approvals />
+            </ProGate>
+          </Route>
           <Route path="/audit-log" component={AuditLog} />
-          <Route path="/workflows" component={Workflows} />
+          <Route path="/workflows">
+            <ProGate feature="Workflows & Automation">
+              <Workflows />
+            </ProGate>
+          </Route>
           {/* Cloud / account */}
           <Route path="/billing" component={Billing} />
           <Route path="/backup" component={Backup} />
           <Route path="/devices" component={Devices} />
           <Route path="/ai" component={AiAssistant} />
           <Route path="/settings" component={Settings} />
-          {/* V4 routes */}
-          <Route path="/integrations" component={Integrations} />
-          <Route path="/webhooks" component={Webhooks} />
-          <Route path="/import-export" component={ImportExport} />
-          <Route path="/custom-fields" component={CustomFields} />
-          <Route path="/system-health" component={SystemHealth} />
-          <Route path="/branding" component={Branding} />
+          {/* V4 routes — Pro only */}
+          <Route path="/integrations">
+            <ProGate feature="Integrations Hub">
+              <Integrations />
+            </ProGate>
+          </Route>
+          <Route path="/webhooks">
+            <ProGate feature="Webhooks & Events">
+              <Webhooks />
+            </ProGate>
+          </Route>
+          <Route path="/import-export">
+            <ProGate feature="Import / Export">
+              <ImportExport />
+            </ProGate>
+          </Route>
+          <Route path="/custom-fields">
+            <ProGate feature="Custom Fields">
+              <CustomFields />
+            </ProGate>
+          </Route>
+          <Route path="/system-health">
+            <ProGate feature="System Health">
+              <SystemHealth />
+            </ProGate>
+          </Route>
+          <Route path="/branding">
+            <ProGate feature="Branding & Deployment">
+              <Branding />
+            </ProGate>
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </AppLayout>

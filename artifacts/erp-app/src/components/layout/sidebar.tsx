@@ -34,6 +34,7 @@ import {
   SlidersHorizontal,
   Activity,
   Palette,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -65,19 +66,19 @@ const financeItems = [
 ];
 
 const teamItems = [
-  { name: "Companies & Team", href: "/team", icon: Building2 },
-  { name: "Approvals", href: "/approvals", icon: ClipboardList },
-  { name: "Workflows", href: "/workflows", icon: Workflow },
+  { name: "Companies & Team", href: "/team", icon: Building2, proOnly: true },
+  { name: "Approvals", href: "/approvals", icon: ClipboardList, proOnly: true },
+  { name: "Workflows", href: "/workflows", icon: Workflow, proOnly: true },
   { name: "Audit Log", href: "/audit-log", icon: History },
 ];
 
 const ecosystemItems = [
-  { name: "Integrations", href: "/integrations", icon: Plug },
-  { name: "Webhooks & Events", href: "/webhooks", icon: Webhook },
-  { name: "Import / Export", href: "/import-export", icon: ArrowUpDown },
-  { name: "Custom Fields", href: "/custom-fields", icon: SlidersHorizontal },
-  { name: "System Health", href: "/system-health", icon: Activity },
-  { name: "Branding", href: "/branding", icon: Palette },
+  { name: "Integrations", href: "/integrations", icon: Plug, proOnly: true },
+  { name: "Webhooks & Events", href: "/webhooks", icon: Webhook, proOnly: true },
+  { name: "Import / Export", href: "/import-export", icon: ArrowUpDown, proOnly: true },
+  { name: "Custom Fields", href: "/custom-fields", icon: SlidersHorizontal, proOnly: true },
+  { name: "System Health", href: "/system-health", icon: Activity, proOnly: true },
+  { name: "Branding", href: "/branding", icon: Palette, proOnly: true },
 ];
 
 const cloudItems = [
@@ -88,10 +89,12 @@ const cloudItems = [
 ];
 
 export function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout: localLogout } = useAuth();
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();
+
+  const isPro = user?.plan === "pro";
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -109,9 +112,24 @@ export function Sidebar() {
     return location === href || (href !== "/" && location.startsWith(href));
   };
 
-  const NavItem = ({ item }: { item: { name: string; href: string; icon: React.ElementType } }) => {
+  const NavItem = ({ item }: { item: { name: string; href: string; icon: React.ElementType; proOnly?: boolean } }) => {
     const active = isActive(item.href);
     const Icon = item.icon;
+    const locked = item.proOnly && !isPro;
+
+    if (locked) {
+      return (
+        <div
+          onClick={() => setLocation("/billing")}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer group text-gray-400 dark:text-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-500 dark:hover:text-indigo-400"
+        >
+          <Icon className="h-4 w-4 flex-shrink-0 text-gray-300 dark:text-gray-700 group-hover:text-indigo-400" />
+          <span className="truncate flex-1">{item.name}</span>
+          <Lock className="h-3 w-3 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-indigo-400" />
+        </div>
+      );
+    }
+
     return (
       <Link href={item.href}>
         <div className={cn(
@@ -127,10 +145,15 @@ export function Sidebar() {
     );
   };
 
-  const SectionLabel = ({ label, badge }: { label: string; badge?: string }) => (
+  const SectionLabel = ({ label, badge, proLocked }: { label: string; badge?: string; proLocked?: boolean }) => (
     <div className="flex items-center gap-2 px-3 mb-1 mt-4">
       <p className="text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600">{label}</p>
       {badge && <span className="text-[9px] font-bold bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 rounded px-1 py-0.5">{badge}</span>}
+      {proLocked && !isPro && (
+        <span className="text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 rounded px-1 py-0.5 flex items-center gap-0.5">
+          <Crown className="h-2 w-2" /> PRO
+        </span>
+      )}
     </div>
   );
 
@@ -145,7 +168,7 @@ export function Sidebar() {
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-base text-gray-900 dark:text-white tracking-tight">BizOS</span>
             <span className="text-[9px] font-semibold bg-indigo-600 text-white rounded px-1 py-0.5">V4</span>
-            {user?.plan === "pro" && (
+            {isPro && (
               <span className="text-[9px] font-semibold bg-amber-400 text-amber-900 rounded px-1 py-0.5">PRO</span>
             )}
           </div>
@@ -172,13 +195,13 @@ export function Sidebar() {
         </div>
 
         {/* Team & Automation */}
-        <SectionLabel label="Team & Automation" />
+        <SectionLabel label="Team & Automation" proLocked />
         <div className="space-y-0.5">
           {teamItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
         {/* Ecosystem — V4 */}
-        <SectionLabel label="Ecosystem" badge="V4" />
+        <SectionLabel label="Ecosystem" badge="V4" proLocked />
         <div className="space-y-0.5">
           {ecosystemItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
@@ -192,27 +215,28 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="p-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
-        {user?.plan === "free" && (
-          <Link href="/billing">
-            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-100 dark:border-indigo-900 p-3 cursor-pointer hover:shadow-sm transition-shadow">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Zap className="h-3.5 w-3.5 text-indigo-600" />
-                  <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">Free Plan</span>
-                </div>
-                <Badge className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 border-0 px-1.5 py-0">Basic</Badge>
+        {!isPro && (
+          <div
+            onClick={() => setLocation("/billing")}
+            className="rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-100 dark:border-indigo-900 p-3 cursor-pointer hover:shadow-sm transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-indigo-600" />
+                <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">Free Plan</span>
               </div>
-              <p className="text-xs text-indigo-700/70 dark:text-indigo-400 mb-2.5 leading-snug">
-                Upgrade to Pro for unlimited AI, analytics &amp; automation.
-              </p>
-              <div className="w-full h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center font-medium transition-colors">
-                <Crown className="mr-1.5 h-3 w-3" /> Upgrade to Pro
-              </div>
+              <Badge className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 border-0 px-1.5 py-0">Basic</Badge>
             </div>
-          </Link>
+            <p className="text-xs text-indigo-700/70 dark:text-indigo-400 mb-2.5 leading-snug">
+              Upgrade to Pro for Ecosystem, Team &amp; Automation and more.
+            </p>
+            <div className="w-full h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center font-medium transition-colors">
+              <Crown className="mr-1.5 h-3 w-3" /> Upgrade to Pro
+            </div>
+          </div>
         )}
 
-        {user?.plan === "pro" && (
+        {isPro && (
           <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
             <div className="flex items-center gap-1.5">
               <Crown className="h-3.5 w-3.5 text-emerald-600" />
