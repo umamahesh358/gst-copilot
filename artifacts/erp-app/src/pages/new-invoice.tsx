@@ -97,7 +97,7 @@ export default function NewInvoice() {
         data: {
           customerId: finalCustomerId,
           customerName: finalCustomerName,
-          dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+          dueDate: data.dueDate || undefined,
           notes: data.notes,
           items: data.items.map((item) => ({
             productId: item.productId || undefined,

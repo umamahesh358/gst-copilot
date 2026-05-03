@@ -66,7 +66,7 @@ export default function Billing() {
       {
         onSuccess: (order) => {
           const razorpayKey = order.keyId;
-          if (razorpayKey === "rzp_test_placeholder" || !window.Razorpay) {
+          if (razorpayKey === "rzp_test_placeholder" || !(window as any).Razorpay) {
             verifyMutation.mutate(
               {
                 data: {
@@ -134,7 +134,7 @@ export default function Billing() {
   };
 
   const handleCancel = () => {
-    cancelMutation.mutate(undefined, {
+    cancelMutation.mutate({ data: {} }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetSubscriptionQueryKey() });
         toast({ title: "Subscription cancelled", description: "You'll retain access until the end of your billing period." });

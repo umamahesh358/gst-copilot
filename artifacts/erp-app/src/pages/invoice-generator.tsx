@@ -48,7 +48,7 @@ export default function InvoiceGenerator() {
   const { data: settingsData } = useGetSettings();
   const printRef = useRef<HTMLDivElement>(null);
 
-  const settings = settingsData?.settings;
+  const settings = settingsData;
   const products = productsData?.products || [];
 
   const form = useForm<FormValues>({
