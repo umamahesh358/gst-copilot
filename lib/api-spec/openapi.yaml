@@ -26,6 +26,14 @@ tags:
     description: Dashboard summary operations
   - name: settings
     description: App settings operations
+  - name: billing
+    description: Subscription and billing operations
+  - name: backup
+    description: Cloud backup and restore operations
+  - name: devices
+    description: Device binding and management operations
+  - name: notifications
+    description: In-app notification operations
 
 paths:
   /healthz:
@@ -649,6 +657,358 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AppSettings"
+
+  # BILLING
+  /billing/plans:
+    get:
+      operationId: listPlans
+      tags: [billing]
+      summary: List all available subscription plans
+      responses:
+        "200":
+          description: Plans list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlansResponse"
+
+  /billing/subscription:
+    get:
+      operationId: getSubscription
+      tags: [billing]
+      summary: Get current user subscription status
+      responses:
+        "200":
+          description: Subscription status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionStatus"
+
+  /billing/checkout:
+    post:
+      operationId: createCheckout
+      tags: [billing]
+      summary: Initiate a checkout / create payment order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutBody"
+      responses:
+        "200":
+          description: Checkout order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutResponse"
+
+  /billing/verify:
+    post:
+      operationId: verifyPayment
+      tags: [billing]
+      summary: Verify payment and activate subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPaymentBody"
+      responses:
+        "200":
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyPaymentResponse"
+
+  /billing/history:
+    get:
+      operationId: getBillingHistory
+      tags: [billing]
+      summary: Get payment/billing history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Billing history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingHistoryResponse"
+
+  /billing/cancel:
+    post:
+      operationId: cancelSubscription
+      tags: [billing]
+      summary: Cancel current subscription
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Subscription cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # BACKUP
+  /backup/list:
+    get:
+      operationId: listBackups
+      tags: [backup]
+      summary: List all backup jobs
+      responses:
+        "200":
+          description: Backups list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupsListResponse"
+
+  /backup/create:
+    post:
+      operationId: createBackup
+      tags: [backup]
+      summary: Create a new cloud backup
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                type:
+                  type: string
+                  enum: [manual, auto]
+      responses:
+        "200":
+          description: Backup created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupJobResponse"
+
+  /backup/restore/{id}:
+    post:
+      operationId: restoreBackup
+      tags: [backup]
+      summary: Restore from a backup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Restore complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /backup/{id}:
+    delete:
+      operationId: deleteBackup
+      tags: [backup]
+      summary: Delete a backup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Backup deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # DEVICES
+  /devices:
+    get:
+      operationId: listDevices
+      tags: [devices]
+      summary: List registered devices
+      responses:
+        "200":
+          description: Devices list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevicesListResponse"
+
+  /devices/register:
+    post:
+      operationId: registerDevice
+      tags: [devices]
+      summary: Register a device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDeviceBody"
+      responses:
+        "200":
+          description: Device registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceResponse"
+
+  /devices/validate:
+    post:
+      operationId: validateDevice
+      tags: [devices]
+      summary: Validate a device is allowed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+              required: [deviceId]
+      responses:
+        "200":
+          description: Device validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceValidationResponse"
+
+  /devices/{id}/revoke:
+    patch:
+      operationId: revokeDevice
+      tags: [devices]
+      summary: Revoke a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Device revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /devices/{id}:
+    delete:
+      operationId: deleteDevice
+      tags: [devices]
+      summary: Delete a device record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Device deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # NOTIFICATIONS
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications for current user
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 30
+        - name: unread
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsListResponse"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: All marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /notifications/{id}:
+    delete:
+      operationId: deleteNotification
+      tags: [notifications]
+      summary: Delete a notification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
 components:
   schemas:
@@ -1322,3 +1682,399 @@ components:
           type: string
         taxLabel:
           type: string
+
+    # BILLING V2
+    SubscriptionPlan:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        billingCycle:
+          type: string
+          nullable: true
+        currency:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        badge:
+          type: string
+        limits:
+          type: object
+          properties:
+            invoices:
+              type: integer
+            aiPrompts:
+              type: integer
+            devices:
+              type: integer
+            backups:
+              type: integer
+          required: [invoices, aiPrompts, devices, backups]
+      required: [id, name, price, currency, features, limits]
+
+    PlansResponse:
+      type: object
+      properties:
+        plans:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionPlan"
+      required: [plans]
+
+    SubscriptionRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        plan:
+          type: string
+        status:
+          type: string
+        billingCycle:
+          type: string
+          nullable: true
+        amount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        renewalDate:
+          type: string
+          format: date-time
+          nullable: true
+        autoRenew:
+          type: boolean
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+        cancelReason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, plan, status, currency, startDate, autoRenew, createdAt]
+
+    SubscriptionStatus:
+      type: object
+      properties:
+        plan:
+          type: string
+        planDetails:
+          $ref: "#/components/schemas/SubscriptionPlan"
+        subscription:
+          $ref: "#/components/schemas/SubscriptionRecord"
+          nullable: true
+        aiPromptsUsed:
+          type: integer
+        aiPromptsLimit:
+          type: integer
+      required: [plan, planDetails, aiPromptsUsed, aiPromptsLimit]
+
+    CheckoutBody:
+      type: object
+      properties:
+        planId:
+          type: string
+          enum: [pro_monthly, pro_yearly]
+      required: [planId]
+
+    CheckoutResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+        paymentId:
+          type: integer
+        amount:
+          type: number
+        currency:
+          type: string
+        plan:
+          type: string
+        planName:
+          type: string
+        keyId:
+          type: string
+      required: [orderId, paymentId, amount, currency, plan, planName, keyId]
+
+    VerifyPaymentBody:
+      type: object
+      properties:
+        paymentId:
+          type: integer
+        gatewayPaymentId:
+          type: string
+        gatewayOrderId:
+          type: string
+        gatewaySignature:
+          type: string
+      required: [paymentId, gatewayPaymentId, gatewayOrderId]
+
+    VerifyPaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        plan:
+          type: string
+        alreadyVerified:
+          type: boolean
+      required: [success]
+
+    PaymentRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        plan:
+          type: string
+        billingCycle:
+          type: string
+          nullable: true
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        gateway:
+          type: string
+        gatewayOrderId:
+          type: string
+          nullable: true
+        gatewayPaymentId:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, plan, amount, currency, status, gateway, createdAt]
+
+    BillingHistoryResponse:
+      type: object
+      properties:
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentRecord"
+      required: [payments]
+
+    # BACKUP V2
+    BackupJob:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        type:
+          type: string
+          enum: [manual, auto]
+        label:
+          type: string
+          nullable: true
+        sizeBytesEstimate:
+          type: integer
+          nullable: true
+        recordCount:
+          type: integer
+          nullable: true
+        tables:
+          type: array
+          items:
+            type: string
+          nullable: true
+        checksum:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        restoredAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, status, type, createdAt]
+
+    BackupsListResponse:
+      type: object
+      properties:
+        backups:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackupJob"
+      required: [backups]
+
+    BackupJobResponse:
+      type: object
+      properties:
+        backup:
+          $ref: "#/components/schemas/BackupJob"
+      required: [backup]
+
+    # DEVICES V2
+    Device:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        deviceId:
+          type: string
+        name:
+          type: string
+        platform:
+          type: string
+        browserInfo:
+          type: string
+          nullable: true
+        ipAddress:
+          type: string
+          nullable: true
+        isRevoked:
+          type: boolean
+        isTrusted:
+          type: boolean
+        lastSeenAt:
+          type: string
+          format: date-time
+        registeredAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, deviceId, name, platform, isRevoked, isTrusted, lastSeenAt, registeredAt, createdAt]
+
+    DevicesListResponse:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Device"
+      required: [devices]
+
+    RegisterDeviceBody:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        name:
+          type: string
+        platform:
+          type: string
+        browserInfo:
+          type: string
+      required: [deviceId, name]
+
+    DeviceResponse:
+      type: object
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"
+        isNew:
+          type: boolean
+      required: [device, isNew]
+
+    DeviceValidationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        reason:
+          type: string
+        device:
+          type: object
+          nullable: true
+      required: [valid]
+
+    # NOTIFICATIONS V2
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [info, success, warning, error]
+        title:
+          type: string
+        message:
+          type: string
+        actionLabel:
+          type: string
+          nullable: true
+        actionUrl:
+          type: string
+          nullable: true
+        isRead:
+          type: boolean
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, type, title, message, isRead, createdAt]
+
+    NotificationsListResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        unreadCount:
+          type: integer
+      required: [notifications, unreadCount]

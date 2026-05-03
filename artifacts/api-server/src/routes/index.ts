@@ -8,6 +8,10 @@ import invoicesRouter from "./invoices";
 import accountingRouter from "./accounting";
 import aiRouter from "./ai";
 import settingsRouter from "./settings";
+import billingRouter from "./billing";
+import backupRouter from "./backup";
+import devicesRouter from "./devices";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -20,5 +24,9 @@ router.use(invoicesRouter);
 router.use(accountingRouter);
 router.use(aiRouter);
 router.use(settingsRouter);
+router.use(billingRouter);
+router.use(backupRouter);
+router.use(devicesRouter);
+router.use(notificationsRouter);
 
 export default router;

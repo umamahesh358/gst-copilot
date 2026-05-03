@@ -27,6 +27,9 @@ import Transactions from "@/pages/transactions";
 import GstReport from "@/pages/gst-report";
 import CreditDebit from "@/pages/credit-debit";
 import Alerts from "@/pages/alerts";
+import Billing from "@/pages/billing";
+import Backup from "@/pages/backup";
+import Devices from "@/pages/devices";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +52,9 @@ function AuthenticatedApp() {
           <Route path="/credit-debit" component={CreditDebit} />
           <Route path="/gst-report" component={GstReport} />
           <Route path="/alerts" component={Alerts} />
+          <Route path="/billing" component={Billing} />
+          <Route path="/backup" component={Backup} />
+          <Route path="/devices" component={Devices} />
           <Route path="/ai" component={AiAssistant} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />

@@ -685,3 +685,358 @@ export const UpdateSettingsResponse = zod.object({
   taxLabel: zod.string(),
   updatedAt: zod.coerce.date(),
 });
+
+/**
+ * @summary List all available subscription plans
+ */
+export const ListPlansResponse = zod.object({
+  plans: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      price: zod.number(),
+      billingCycle: zod.string().nullish(),
+      currency: zod.string(),
+      features: zod.array(zod.string()),
+      badge: zod.string().optional(),
+      limits: zod.object({
+        invoices: zod.number(),
+        aiPrompts: zod.number(),
+        devices: zod.number(),
+        backups: zod.number(),
+      }),
+    }),
+  ),
+});
+
+/**
+ * @summary Get current user subscription status
+ */
+export const GetSubscriptionResponse = zod.object({
+  plan: zod.string(),
+  planDetails: zod.object({
+    id: zod.string(),
+    name: zod.string(),
+    price: zod.number(),
+    billingCycle: zod.string().nullish(),
+    currency: zod.string(),
+    features: zod.array(zod.string()),
+    badge: zod.string().optional(),
+    limits: zod.object({
+      invoices: zod.number(),
+      aiPrompts: zod.number(),
+      devices: zod.number(),
+      backups: zod.number(),
+    }),
+  }),
+  subscription: zod
+    .object({
+      id: zod.number(),
+      userId: zod.number(),
+      plan: zod.string(),
+      status: zod.string(),
+      billingCycle: zod.string().nullish(),
+      amount: zod.number().nullish(),
+      currency: zod.string(),
+      startDate: zod.coerce.date(),
+      endDate: zod.coerce.date().nullish(),
+      renewalDate: zod.coerce.date().nullish(),
+      autoRenew: zod.boolean(),
+      cancelledAt: zod.coerce.date().nullish(),
+      cancelReason: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+  aiPromptsUsed: zod.number(),
+  aiPromptsLimit: zod.number(),
+});
+
+/**
+ * @summary Initiate a checkout / create payment order
+ */
+export const CreateCheckoutBody = zod.object({
+  planId: zod.enum(["pro_monthly", "pro_yearly"]),
+});
+
+export const CreateCheckoutResponse = zod.object({
+  orderId: zod.string(),
+  paymentId: zod.number(),
+  amount: zod.number(),
+  currency: zod.string(),
+  plan: zod.string(),
+  planName: zod.string(),
+  keyId: zod.string(),
+});
+
+/**
+ * @summary Verify payment and activate subscription
+ */
+export const VerifyPaymentBody = zod.object({
+  paymentId: zod.number(),
+  gatewayPaymentId: zod.string(),
+  gatewayOrderId: zod.string(),
+  gatewaySignature: zod.string().optional(),
+});
+
+export const VerifyPaymentResponse = zod.object({
+  success: zod.boolean(),
+  plan: zod.string().optional(),
+  alreadyVerified: zod.boolean().optional(),
+});
+
+/**
+ * @summary Get payment/billing history
+ */
+export const getBillingHistoryQueryLimitDefault = 20;
+
+export const GetBillingHistoryQueryParams = zod.object({
+  limit: zod.coerce.number().default(getBillingHistoryQueryLimitDefault),
+});
+
+export const GetBillingHistoryResponse = zod.object({
+  payments: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number(),
+      plan: zod.string(),
+      billingCycle: zod.string().nullish(),
+      amount: zod.number(),
+      currency: zod.string(),
+      status: zod.string(),
+      gateway: zod.string(),
+      gatewayOrderId: zod.string().nullish(),
+      gatewayPaymentId: zod.string().nullish(),
+      description: zod.string().nullish(),
+      paidAt: zod.coerce.date().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary Cancel current subscription
+ */
+export const CancelSubscriptionBody = zod.object({
+  reason: zod.string().optional(),
+});
+
+export const CancelSubscriptionResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List all backup jobs
+ */
+export const ListBackupsResponse = zod.object({
+  backups: zod.array(
+    zod.object({
+      id: zod.number(),
+      status: zod.enum(["pending", "running", "completed", "failed"]),
+      type: zod.enum(["manual", "auto"]),
+      label: zod.string().nullish(),
+      sizeBytesEstimate: zod.number().nullish(),
+      recordCount: zod.number().nullish(),
+      tables: zod.array(zod.string()).nullish(),
+      checksum: zod.string().nullish(),
+      notes: zod.string().nullish(),
+      startedAt: zod.coerce.date().nullish(),
+      completedAt: zod.coerce.date().nullish(),
+      expiresAt: zod.coerce.date().nullish(),
+      restoredAt: zod.coerce.date().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary Create a new cloud backup
+ */
+export const CreateBackupBody = zod.object({
+  label: zod.string().optional(),
+  type: zod.enum(["manual", "auto"]).optional(),
+});
+
+export const CreateBackupResponse = zod.object({
+  backup: zod.object({
+    id: zod.number(),
+    status: zod.enum(["pending", "running", "completed", "failed"]),
+    type: zod.enum(["manual", "auto"]),
+    label: zod.string().nullish(),
+    sizeBytesEstimate: zod.number().nullish(),
+    recordCount: zod.number().nullish(),
+    tables: zod.array(zod.string()).nullish(),
+    checksum: zod.string().nullish(),
+    notes: zod.string().nullish(),
+    startedAt: zod.coerce.date().nullish(),
+    completedAt: zod.coerce.date().nullish(),
+    expiresAt: zod.coerce.date().nullish(),
+    restoredAt: zod.coerce.date().nullish(),
+    createdAt: zod.coerce.date(),
+  }),
+});
+
+/**
+ * @summary Restore from a backup
+ */
+export const RestoreBackupParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const RestoreBackupResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Delete a backup
+ */
+export const DeleteBackupParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteBackupResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List registered devices
+ */
+export const ListDevicesResponse = zod.object({
+  devices: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number(),
+      deviceId: zod.string(),
+      name: zod.string(),
+      platform: zod.string(),
+      browserInfo: zod.string().nullish(),
+      ipAddress: zod.string().nullish(),
+      isRevoked: zod.boolean(),
+      isTrusted: zod.boolean(),
+      lastSeenAt: zod.coerce.date(),
+      registeredAt: zod.coerce.date(),
+      revokedAt: zod.coerce.date().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary Register a device
+ */
+export const RegisterDeviceBody = zod.object({
+  deviceId: zod.string(),
+  name: zod.string(),
+  platform: zod.string().optional(),
+  browserInfo: zod.string().optional(),
+});
+
+export const RegisterDeviceResponse = zod.object({
+  device: zod.object({
+    id: zod.number(),
+    userId: zod.number(),
+    deviceId: zod.string(),
+    name: zod.string(),
+    platform: zod.string(),
+    browserInfo: zod.string().nullish(),
+    ipAddress: zod.string().nullish(),
+    isRevoked: zod.boolean(),
+    isTrusted: zod.boolean(),
+    lastSeenAt: zod.coerce.date(),
+    registeredAt: zod.coerce.date(),
+    revokedAt: zod.coerce.date().nullish(),
+    createdAt: zod.coerce.date(),
+  }),
+  isNew: zod.boolean(),
+});
+
+/**
+ * @summary Validate a device is allowed
+ */
+export const ValidateDeviceBody = zod.object({
+  deviceId: zod.string(),
+});
+
+export const ValidateDeviceResponse = zod.object({
+  valid: zod.boolean(),
+  reason: zod.string().optional(),
+  device: zod.object({}).passthrough().nullish(),
+});
+
+/**
+ * @summary Revoke a device
+ */
+export const RevokeDeviceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const RevokeDeviceResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Delete a device record
+ */
+export const DeleteDeviceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteDeviceResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List notifications for current user
+ */
+export const listNotificationsQueryLimitDefault = 30;
+
+export const ListNotificationsQueryParams = zod.object({
+  limit: zod.coerce.number().default(listNotificationsQueryLimitDefault),
+  unread: zod.coerce.boolean().optional(),
+});
+
+export const ListNotificationsResponse = zod.object({
+  notifications: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number(),
+      type: zod.enum(["info", "success", "warning", "error"]),
+      title: zod.string(),
+      message: zod.string(),
+      actionLabel: zod.string().nullish(),
+      actionUrl: zod.string().nullish(),
+      isRead: zod.boolean(),
+      readAt: zod.coerce.date().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  unreadCount: zod.number(),
+});
+
+/**
+ * @summary Mark a notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkNotificationReadResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Delete a notification
+ */
+export const DeleteNotificationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteNotificationResponse = zod.object({
+  message: zod.string(),
+});

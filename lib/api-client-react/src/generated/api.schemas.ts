@@ -427,6 +427,218 @@ export interface UpdateSettingsBody {
   taxLabel?: string;
 }
 
+export type SubscriptionPlanLimits = {
+  invoices: number;
+  aiPrompts: number;
+  devices: number;
+  backups: number;
+};
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  billingCycle?: string | null;
+  currency: string;
+  features: string[];
+  badge?: string;
+  limits: SubscriptionPlanLimits;
+}
+
+export interface PlansResponse {
+  plans: SubscriptionPlan[];
+}
+
+export interface SubscriptionRecord {
+  id: number;
+  userId: number;
+  plan: string;
+  status: string;
+  billingCycle?: string | null;
+  amount?: number | null;
+  currency: string;
+  startDate: string;
+  endDate?: string | null;
+  renewalDate?: string | null;
+  autoRenew: boolean;
+  cancelledAt?: string | null;
+  cancelReason?: string | null;
+  createdAt: string;
+}
+
+export interface SubscriptionStatus {
+  plan: string;
+  planDetails: SubscriptionPlan;
+  subscription?: SubscriptionRecord | null;
+  aiPromptsUsed: number;
+  aiPromptsLimit: number;
+}
+
+export type CheckoutBodyPlanId =
+  (typeof CheckoutBodyPlanId)[keyof typeof CheckoutBodyPlanId];
+
+export const CheckoutBodyPlanId = {
+  pro_monthly: "pro_monthly",
+  pro_yearly: "pro_yearly",
+} as const;
+
+export interface CheckoutBody {
+  planId: CheckoutBodyPlanId;
+}
+
+export interface CheckoutResponse {
+  orderId: string;
+  paymentId: number;
+  amount: number;
+  currency: string;
+  plan: string;
+  planName: string;
+  keyId: string;
+}
+
+export interface VerifyPaymentBody {
+  paymentId: number;
+  gatewayPaymentId: string;
+  gatewayOrderId: string;
+  gatewaySignature?: string;
+}
+
+export interface VerifyPaymentResponse {
+  success: boolean;
+  plan?: string;
+  alreadyVerified?: boolean;
+}
+
+export interface PaymentRecord {
+  id: number;
+  userId: number;
+  plan: string;
+  billingCycle?: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  gateway: string;
+  gatewayOrderId?: string | null;
+  gatewayPaymentId?: string | null;
+  description?: string | null;
+  paidAt?: string | null;
+  createdAt: string;
+}
+
+export interface BillingHistoryResponse {
+  payments: PaymentRecord[];
+}
+
+export type BackupJobStatus =
+  (typeof BackupJobStatus)[keyof typeof BackupJobStatus];
+
+export const BackupJobStatus = {
+  pending: "pending",
+  running: "running",
+  completed: "completed",
+  failed: "failed",
+} as const;
+
+export type BackupJobType = (typeof BackupJobType)[keyof typeof BackupJobType];
+
+export const BackupJobType = {
+  manual: "manual",
+  auto: "auto",
+} as const;
+
+export interface BackupJob {
+  id: number;
+  status: BackupJobStatus;
+  type: BackupJobType;
+  label?: string | null;
+  sizeBytesEstimate?: number | null;
+  recordCount?: number | null;
+  tables?: string[] | null;
+  checksum?: string | null;
+  notes?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  expiresAt?: string | null;
+  restoredAt?: string | null;
+  createdAt: string;
+}
+
+export interface BackupsListResponse {
+  backups: BackupJob[];
+}
+
+export interface BackupJobResponse {
+  backup: BackupJob;
+}
+
+export interface Device {
+  id: number;
+  userId: number;
+  deviceId: string;
+  name: string;
+  platform: string;
+  browserInfo?: string | null;
+  ipAddress?: string | null;
+  isRevoked: boolean;
+  isTrusted: boolean;
+  lastSeenAt: string;
+  registeredAt: string;
+  revokedAt?: string | null;
+  createdAt: string;
+}
+
+export interface DevicesListResponse {
+  devices: Device[];
+}
+
+export interface RegisterDeviceBody {
+  deviceId: string;
+  name: string;
+  platform?: string;
+  browserInfo?: string;
+}
+
+export interface DeviceResponse {
+  device: Device;
+  isNew: boolean;
+}
+
+export type DeviceValidationResponseDevice = { [key: string]: unknown } | null;
+
+export interface DeviceValidationResponse {
+  valid: boolean;
+  reason?: string;
+  device?: DeviceValidationResponseDevice;
+}
+
+export type NotificationType =
+  (typeof NotificationType)[keyof typeof NotificationType];
+
+export const NotificationType = {
+  info: "info",
+  success: "success",
+  warning: "warning",
+  error: "error",
+} as const;
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  actionLabel?: string | null;
+  actionUrl?: string | null;
+  isRead: boolean;
+  readAt?: string | null;
+  createdAt: string;
+}
+
+export interface NotificationsListResponse {
+  notifications: Notification[];
+  unreadCount: number;
+}
+
 export type GetRecentActivityParams = {
   limit?: number;
 };
@@ -498,4 +710,34 @@ export const GetAccountingSummaryPeriod = {
 
 export type GetAiHistoryParams = {
   limit?: number;
+};
+
+export type GetBillingHistoryParams = {
+  limit?: number;
+};
+
+export type CancelSubscriptionBody = {
+  reason?: string;
+};
+
+export type CreateBackupBodyType =
+  (typeof CreateBackupBodyType)[keyof typeof CreateBackupBodyType];
+
+export const CreateBackupBodyType = {
+  manual: "manual",
+  auto: "auto",
+} as const;
+
+export type CreateBackupBody = {
+  label?: string;
+  type?: CreateBackupBodyType;
+};
+
+export type ValidateDeviceBody = {
+  deviceId: string;
+};
+
+export type ListNotificationsParams = {
+  limit?: number;
+  unread?: boolean;
 };

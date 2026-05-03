@@ -17,14 +17,18 @@ import {
   Moon,
   Sun,
   TrendingUp,
+  Crown,
+  Database,
+  Monitor,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useLogout } from "@workspace/api-client-react";
-import { useTheme } from "@/components/theme-provider";
+import { useLogout, useListNotifications } from "@workspace/api-client-react";
+import { useTheme } from "next-themes";
 
-const navigation = [
+const coreNav = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Invoices", href: "/invoices", icon: Receipt },
   { name: "Invoice Generator", href: "/invoices/new", icon: FileText },
@@ -34,7 +38,16 @@ const navigation = [
   { name: "Accounting", href: "/accounting", icon: Calculator },
   { name: "Credit & Debit", href: "/credit-debit", icon: CreditCard },
   { name: "GST Report", href: "/gst-report", icon: BarChart3 },
-  { name: "Alerts", href: "/alerts", icon: Bell },
+];
+
+const cloudNav = [
+  { name: "Billing", href: "/billing", icon: Crown },
+  { name: "Cloud Backup", href: "/backup", icon: Database },
+  { name: "Devices", href: "/devices", icon: Monitor },
+];
+
+const bottomNav = [
+  { name: "Alerts", href: "/alerts", icon: Bell, badge: true },
   { name: "AI Assistant", href: "/ai", icon: Sparkles },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
@@ -45,14 +58,13 @@ export function Sidebar() {
   const logoutMutation = useLogout();
   const { theme, setTheme } = useTheme();
 
+  const { data: notifData } = useListNotifications({ unread: true, limit: 1 });
+  const unreadCount = notifData?.unreadCount || 0;
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        localLogout();
-      },
-      onError: () => {
-        localLogout();
-      }
+      onSuccess: () => localLogout(),
+      onError: () => localLogout(),
     });
   };
 
@@ -61,61 +73,121 @@ export function Sidebar() {
     if (href === "/invoices") return location.startsWith("/invoices") && location !== "/invoices/new";
     if (href === "/inventory/new") return location === "/inventory/new";
     if (href === "/inventory") return location.startsWith("/inventory") && location !== "/inventory/new";
-    return location.startsWith(href);
+    return location === href || (href !== "/" && location.startsWith(href));
+  };
+
+  const NavItem = ({ item }: { item: { name: string; href: string; icon: React.ElementType; badge?: boolean } }) => {
+    const active = isActive(item.href);
+    const Icon = item.icon;
+    return (
+      <Link href={item.href}>
+        <div className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer",
+          active
+            ? "bg-indigo-600 text-white shadow-sm"
+            : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+        )}>
+          <Icon className={cn("h-4 w-4 flex-shrink-0", active ? "text-white" : "text-gray-400 dark:text-gray-500")} />
+          <span className="truncate flex-1">{item.name}</span>
+          {item.badge && unreadCount > 0 && (
+            <span className={cn(
+              "ml-auto text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none",
+              active ? "bg-white text-indigo-600" : "bg-red-500 text-white"
+            )}>
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </div>
+      </Link>
+    );
   };
 
   return (
     <div className="flex h-full w-64 flex-col bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800">
+      {/* Logo */}
       <div className="flex h-14 items-center px-5 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
             <TrendingUp className="h-4 w-4 text-white" />
           </div>
-          <span className="font-bold text-lg text-gray-900 dark:text-white tracking-tight">BizOS</span>
+          <div>
+            <span className="font-bold text-base text-gray-900 dark:text-white tracking-tight">BizOS</span>
+            {user?.plan === "pro" && (
+              <span className="ml-1.5 text-[9px] font-semibold bg-amber-400 text-amber-900 rounded px-1 py-0.5 align-middle">PRO</span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-        {navigation.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link key={item.name} href={item.href}>
-              <div
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer",
-                  active
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-                )}
-              >
-                <item.icon className={cn("h-4 w-4 flex-shrink-0", active ? "text-white" : "text-gray-400 dark:text-gray-500")} />
-                <span className="truncate">{item.name}</span>
-              </div>
-            </Link>
-          );
-        })}
+      {/* Nav */}
+      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-4">
+        {/* Core */}
+        <div>
+          <p className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600 mb-1">Business</p>
+          <div className="space-y-0.5">
+            {coreNav.map((item) => <NavItem key={item.name} item={item} />)}
+          </div>
+        </div>
+
+        {/* Cloud / V2 */}
+        <div>
+          <p className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600 mb-1">Cloud</p>
+          <div className="space-y-0.5">
+            {cloudNav.map((item) => <NavItem key={item.name} item={item} />)}
+          </div>
+        </div>
+
+        {/* Tools */}
+        <div>
+          <p className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600 mb-1">Tools</p>
+          <div className="space-y-0.5">
+            {bottomNav.map((item) => <NavItem key={item.name} item={item} />)}
+          </div>
+        </div>
       </div>
 
+      {/* Footer */}
       <div className="p-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
         {user?.plan === "free" && (
-          <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-100 dark:border-indigo-900 p-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">Free Plan</span>
-              <Badge className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 border-0 px-1.5 py-0">Basic</Badge>
+          <Link href="/billing">
+            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-100 dark:border-indigo-900 p-3 cursor-pointer hover:shadow-sm transition-shadow">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 text-indigo-600" />
+                  <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">Free Plan</span>
+                </div>
+                <Badge className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 border-0 px-1.5 py-0">Basic</Badge>
+              </div>
+              <p className="text-xs text-indigo-700/70 dark:text-indigo-400 mb-2.5 leading-snug">
+                Upgrade to Pro for unlimited AI, cloud backup & multi-device access.
+              </p>
+              <div className="w-full h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center font-medium transition-colors">
+                <Crown className="mr-1.5 h-3 w-3" /> Upgrade to Pro
+              </div>
             </div>
-            <p className="text-xs text-indigo-700/70 dark:text-indigo-400 mb-2.5 leading-snug">
-              Upgrade to Pro for unlimited invoices, AI prompts & GST filing.
-            </p>
-            <Button size="sm" className="w-full h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white border-0 rounded-lg">
-              Upgrade to Pro
-            </Button>
-          </div>
+          </Link>
         )}
 
         {user?.plan === "pro" && (
           <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
-            <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Pro Plan</span>
+            <div className="flex items-center gap-1.5">
+              <Crown className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Pro Plan</span>
+            </div>
             <Badge className="text-[10px] bg-emerald-600 text-white border-0 px-1.5 py-0">Active</Badge>
+          </div>
+        )}
+
+        {/* User info */}
+        {user && (
+          <div className="flex items-center gap-2 px-3 py-2">
+            <div className="h-7 w-7 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-indigo-600">{user.name?.charAt(0)?.toUpperCase() || "U"}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{user.name}</p>
+              <p className="text-[10px] text-gray-400 truncate">{user.businessName}</p>
+            </div>
           </div>
         )}
 
