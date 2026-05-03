@@ -1,7 +1,7 @@
 # BizOS — AI-Powered ERP for Indian SMEs
 
 ## Overview
-A production-grade ERP web application for Indian small and medium enterprises. Features GST-aware invoicing, inventory management, double-entry accounting, an AI business assistant, freemium plan gating, and a Bloomberg terminal-inspired dark UI.
+A production-grade ERP web application for Indian small and medium enterprises. Features GST-aware invoicing, inventory management, double-entry accounting, an AI business assistant with markdown rendering, a dashboard AI insight widget, subscription/billing (Razorpay-ready), cloud backup/restore, device binding, notifications, and audit logs.
 
 ## Architecture
 

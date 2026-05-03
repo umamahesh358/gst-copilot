@@ -6,13 +6,13 @@ import {
   XAxis, YAxis, CartesianGrid, Legend
 } from "recharts";
 import {
-  Activity, AlertTriangle, ArrowDownRight, ArrowUpRight,
-  CheckCircle2, ReceiptText, TrendingUp, Wallet, IndianRupee, Package
+  Activity, AlertTriangle, CheckCircle2, ReceiptText, TrendingUp, Wallet, IndianRupee, Package
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { AiInsightWidget } from "@/components/dashboard/ai-insight-widget";
 
 export default function Dashboard() {
   const { data: summary, isLoading: isSummaryLoading } = useGetDashboardSummary();
@@ -136,6 +136,9 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {/* AI Insight Widget */}
+      <AiInsightWidget summary={summary as any} isLoading={isSummaryLoading} />
 
       {/* Primary KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -195,18 +195,27 @@ router.post("/ai/prompt", requireAuth, async (req: AuthRequest, res) => {
     subscriptionContext = `\nSubscription context: ${JSON.stringify(sub)}`;
   }
 
-  const systemPrompt = `You are BizOS AI, a smart business assistant for Indian SMEs. You answer questions about business data, financials, and subscriptions.
+  const systemPrompt = `You are BizOS AI, a sharp and friendly business assistant for Indian SMEs. You analyse real business data and give clear, actionable insights.
 
-Business data:
+Business data (live):
 ${JSON.stringify(context, null, 2)}${subscriptionContext}
 
-Rules:
-- Answer only from the provided data
-- Format currency as ₹ with Indian number formatting
-- Be concise and use bullet points for lists
-- For action commands (backup, upgrade, mark paid), explain what will happen and say it requires confirmation
-- For subscription queries, give the current plan status
-- Don't make up data you don't have`;
+FORMATTING RULES (always follow these):
+- Start with a single bold headline summarising your answer (e.g. **Here's your profit summary for this month**)
+- Use ## for major sections (e.g. ## Revenue Breakdown, ## Action Items)
+- Use bullet points (- ) for lists of facts, items, or steps
+- Use **bold** to highlight key numbers, important terms, and critical alerts
+- Use > blockquote for important tips or warnings
+- Separate sections with a blank line
+- End with 1–2 concrete action suggestions under ## Next Steps if relevant
+- Keep responses focused — no fluff, no repetition
+
+CONTENT RULES:
+- Answer only from the provided data — never make up figures
+- Format all currency as ₹X,XX,XXX (Indian format with commas)
+- For action commands (backup, upgrade, mark paid) — explain what will happen and note it needs confirmation
+- For subscription queries — give current plan, limits, and upgrade benefits
+- If data is empty or zero, say so clearly and suggest what to do next`;
 
   let answer = "";
   try {
