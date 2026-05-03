@@ -23,7 +23,7 @@ const invoiceItemSchema = z.object({
 
 const invoiceSchema = z.object({
   customerId: z.coerce.number().optional(),
-  customerName: z.string().min(1, "Customer name required"),
+  customerName: z.string().optional(),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, "At least 1 item required"),
@@ -45,7 +45,7 @@ export default function NewInvoice() {
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       customerName: "",
-      dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       items: [{ productName: "", quantity: 1, unitPrice: 0, gstRate: 18 }],
     },
   });
@@ -56,18 +56,16 @@ export default function NewInvoice() {
   });
 
   const watchedItems = form.watch("items");
-  
+
   const calculateTotals = () => {
     let subtotal = 0;
     let gstAmount = 0;
-    
-    watchedItems.forEach(item => {
+    watchedItems.forEach((item) => {
       const itemSubtotal = (item.quantity || 0) * (item.unitPrice || 0);
       const itemGst = itemSubtotal * ((item.gstRate || 0) / 100);
       subtotal += itemSubtotal;
       gstAmount += itemGst;
     });
-    
     return { subtotal, gstAmount, total: subtotal + gstAmount };
   };
 
@@ -75,72 +73,97 @@ export default function NewInvoice() {
 
   const onSubmit = async (data: InvoiceFormValues) => {
     try {
-      let finalCustomerId = data.customerId;
-      let finalCustomerName = data.customerName;
+      if (customerMode === "select" && !data.customerId) {
+        toast({ variant: "destructive", title: "Customer required", description: "Please select a customer or add a new one." });
+        return;
+      }
+      if (customerMode === "new" && (!data.customerName || data.customerName.trim() === "")) {
+        toast({ variant: "destructive", title: "Customer name required", description: "Please enter a customer name." });
+        return;
+      }
 
-      if (customerMode === "new") {
+      let finalCustomerId = data.customerId;
+      let finalCustomerName = data.customerName || "";
+
+      if (customerMode === "new" && data.customerName) {
         const newCustomer = await createCustomerMutation.mutateAsync({
-          data: { name: data.customerName }
+          data: { name: data.customerName },
         });
-        finalCustomerId = newCustomer.id;
+        finalCustomerId = (newCustomer as any).id;
+        finalCustomerName = data.customerName;
       }
 
       await createInvoiceMutation.mutateAsync({
         data: {
-          ...data,
           customerId: finalCustomerId,
           customerName: finalCustomerName,
-          items: data.items.map(item => ({
-            ...item,
-            productId: item.productId || undefined
-          }))
-        }
+          dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+          notes: data.notes,
+          items: data.items.map((item) => ({
+            productId: item.productId || undefined,
+            productName: item.productName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            gstRate: item.gstRate,
+          })),
+        },
       });
 
-      toast({ title: "Invoice created" });
+      toast({ title: "Invoice created successfully" });
       setLocation("/invoices");
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Error", description: err.message || "Failed to create invoice" });
+      toast({
+        variant: "destructive",
+        title: "Error creating invoice",
+        description: err.message || "Something went wrong. Please try again.",
+      });
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="space-y-6 max-w-5xl">
+      <div className="flex items-center gap-3">
         <Link href="/invoices">
-          <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight">Create Invoice</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Create Invoice</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Generate a new tax invoice for your customer</p>
+        </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Details</CardTitle>
+          <Card className="rounded-2xl border-gray-200 dark:border-gray-800 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold">Customer Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex gap-4">
-                  <Button 
-                    type="button" 
-                    variant={customerMode === "select" ? "default" : "outline"} 
-                    onClick={() => setCustomerMode("select")}
-                  >
-                    Select Existing
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant={customerMode === "new" ? "default" : "outline"} 
-                    onClick={() => {
-                      setCustomerMode("new");
-                      form.setValue("customerId", undefined);
-                      form.setValue("customerName", "");
-                    }}
-                  >
-                    Add New Customer
-                  </Button>
-                </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={customerMode === "select" ? "default" : "outline"}
+                  onClick={() => setCustomerMode("select")}
+                  className={customerMode === "select" ? "bg-indigo-600 hover:bg-indigo-700" : ""}
+                >
+                  Select Existing
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={customerMode === "new" ? "default" : "outline"}
+                  onClick={() => {
+                    setCustomerMode("new");
+                    form.setValue("customerId", undefined);
+                    form.setValue("customerName", "");
+                  }}
+                  className={customerMode === "new" ? "bg-indigo-600 hover:bg-indigo-700" : ""}
+                >
+                  Add New Customer
+                </Button>
               </div>
 
               {customerMode === "select" ? (
@@ -149,24 +172,32 @@ export default function NewInvoice() {
                   name="customerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer</FormLabel>
-                      <Select 
+                      <FormLabel>Select Customer</FormLabel>
+                      <Select
                         onValueChange={(val) => {
-                          field.onChange(val);
-                          const customer = customersData?.customers.find(c => c.id.toString() === val);
+                          field.onChange(Number(val));
+                          const customer = customersData?.customers.find((c) => c.id.toString() === val);
                           if (customer) form.setValue("customerName", customer.name);
-                        }} 
+                        }}
                         value={field.value?.toString() || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a customer" />
+                            <SelectValue placeholder="Choose a customer..." />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {customersData?.customers.map(c => (
-                            <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
-                          ))}
+                          {customersData?.customers && customersData.customers.length > 0 ? (
+                            customersData.customers.map((c) => (
+                              <SelectItem key={c.id} value={c.id.toString()}>
+                                {c.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="__none__" disabled>
+                              No customers yet — add one instead
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -181,7 +212,7 @@ export default function NewInvoice() {
                     <FormItem>
                       <FormLabel>Customer Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter customer name" {...field} />
+                        <Input placeholder="Enter customer or business name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -193,7 +224,7 @@ export default function NewInvoice() {
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="max-w-xs">
                     <FormLabel>Due Date</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
@@ -205,46 +236,51 @@ export default function NewInvoice() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Line Items</CardTitle>
+          <Card className="rounded-2xl border-gray-200 dark:border-gray-800 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold">Line Items</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {fields.map((field, index) => (
-                <div key={field.id} className="flex flex-col md:flex-row gap-4 p-4 border rounded-md relative items-end">
-                  <div className="flex-1 space-y-4">
+                <div
+                  key={field.id}
+                  className="flex flex-col md:flex-row gap-3 p-4 border border-gray-100 dark:border-gray-800 rounded-xl bg-gray-50/50 dark:bg-gray-900/50 relative items-end"
+                >
+                  <div className="flex-1 space-y-3">
                     <FormField
                       control={form.control}
                       name={`items.${index}.productId`}
-                      render={({ field }) => (
+                      render={({ field: f }) => (
                         <FormItem>
-                          <FormLabel>Product</FormLabel>
-                          <Select 
+                          <FormLabel className="text-xs">Product</FormLabel>
+                          <Select
                             onValueChange={(val) => {
                               if (val === "custom") {
-                                field.onChange(undefined);
+                                f.onChange(undefined);
                                 form.setValue(`items.${index}.productName`, "");
                               } else {
-                                field.onChange(val);
-                                const product = productsData?.products.find(p => p.id.toString() === val);
+                                f.onChange(Number(val));
+                                const product = productsData?.products.find((p) => p.id.toString() === val);
                                 if (product) {
                                   form.setValue(`items.${index}.productName`, product.name);
                                   form.setValue(`items.${index}.unitPrice`, product.price);
                                   form.setValue(`items.${index}.gstRate`, product.gstRate);
                                 }
                               }
-                            }} 
-                            value={field.value?.toString() || "custom"}
+                            }}
+                            value={f.value?.toString() || "custom"}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-9 text-sm">
                                 <SelectValue placeholder="Select or custom" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="custom">Custom Item</SelectItem>
-                              {productsData?.products.map(p => (
-                                <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+                              {productsData?.products.map((p) => (
+                                <SelectItem key={p.id} value={p.id.toString()}>
+                                  {p.name}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -252,101 +288,114 @@ export default function NewInvoice() {
                         </FormItem>
                       )}
                     />
-                    
-                    {form.watch(`items.${index}.productId`) === undefined && (
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.productName`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Item Name</FormLabel>
+
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.productName`}
+                      render={({ field: f }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Description</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="h-9 text-sm"
+                              placeholder="Item description"
+                              {...f}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex gap-3 items-end">
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.quantity`}
+                      render={({ field: f }) => (
+                        <FormItem className="w-20">
+                          <FormLabel className="text-xs">Qty</FormLabel>
+                          <FormControl>
+                            <Input className="h-9 text-sm" type="number" min="1" {...f} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.unitPrice`}
+                      render={({ field: f }) => (
+                        <FormItem className="w-32">
+                          <FormLabel className="text-xs">Price (₹)</FormLabel>
+                          <FormControl>
+                            <Input className="h-9 text-sm" type="number" min="0" step="0.01" {...f} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.gstRate`}
+                      render={({ field: f }) => (
+                        <FormItem className="w-24">
+                          <FormLabel className="text-xs">GST %</FormLabel>
+                          <Select
+                            onValueChange={(val) => f.onChange(Number(val))}
+                            value={f.value?.toString() ?? "18"}
+                          >
                             <FormControl>
-                              <Input placeholder="Enter item description" {...field} />
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            <SelectContent>
+                              <SelectItem value="0">0%</SelectItem>
+                              <SelectItem value="5">5%</SelectItem>
+                              <SelectItem value="12">12%</SelectItem>
+                              <SelectItem value="18">18%</SelectItem>
+                              <SelectItem value="28">28%</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.quantity`}
-                    render={({ field }) => (
-                      <FormItem className="w-24">
-                        <FormLabel>Qty</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.unitPrice`}
-                    render={({ field }) => (
-                      <FormItem className="w-32">
-                        <FormLabel>Price</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" step="0.01" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.gstRate`}
-                    render={({ field }) => (
-                      <FormItem className="w-24">
-                        <FormLabel>GST %</FormLabel>
-                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value.toString()}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="0%" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="0">0%</SelectItem>
-                            <SelectItem value="5">5%</SelectItem>
-                            <SelectItem value="12">12%</SelectItem>
-                            <SelectItem value="18">18%</SelectItem>
-                            <SelectItem value="28">28%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {fields.length > 1 && (
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-destructive mb-2" 
-                      onClick={() => remove(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
               ))}
-              
-              <Button type="button" variant="outline" onClick={() => append({ productName: "", quantity: 1, unitPrice: 0, gstRate: 18 })}>
-                <Plus className="h-4 w-4 mr-2" /> Add Item
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-lg"
+                onClick={() => append({ productName: "", quantity: 1, unitPrice: 0, gstRate: 18 })}
+              >
+                <Plus className="h-4 w-4 mr-2" /> Add Line Item
               </Button>
             </CardContent>
           </Card>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            <Card className="flex-1">
-              <CardHeader>
-                <CardTitle>Additional Info</CardTitle>
+          <div className="flex flex-col md:flex-row gap-4">
+            <Card className="flex-1 rounded-2xl border-gray-200 dark:border-gray-800 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-semibold">Notes</CardTitle>
               </CardHeader>
               <CardContent>
                 <FormField
@@ -354,9 +403,8 @@ export default function NewInvoice() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes / Terms</FormLabel>
                       <FormControl>
-                        <Input placeholder="Thank you for your business" {...field} />
+                        <Input placeholder="Thank you for your business!" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -365,26 +413,32 @@ export default function NewInvoice() {
               </CardContent>
             </Card>
 
-            <Card className="w-full md:w-80">
-              <CardHeader>
-                <CardTitle>Summary</CardTitle>
+            <Card className="w-full md:w-72 rounded-2xl border-gray-200 dark:border-gray-800 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-semibold">Invoice Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{totals.subtotal.toFixed(2)}</span>
+                  <span className="text-gray-500">Subtotal</span>
+                  <span className="font-medium">₹{totals.subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">GST</span>
-                  <span>₹{totals.gstAmount.toFixed(2)}</span>
+                  <span className="text-gray-500">GST</span>
+                  <span className="font-medium text-amber-600">₹{totals.gstAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="flex justify-between font-bold text-lg pt-4 border-t">
+                <div className="flex justify-between font-bold text-lg pt-3 border-t border-gray-100 dark:border-gray-800">
                   <span>Total</span>
-                  <span>₹{totals.total.toFixed(2)}</span>
+                  <span className="text-indigo-600">₹{totals.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                 </div>
-                
-                <Button type="submit" className="w-full mt-4" disabled={createInvoiceMutation.isPending || createCustomerMutation.isPending}>
-                  {(createInvoiceMutation.isPending || createCustomerMutation.isPending) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+
+                <Button
+                  type="submit"
+                  className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+                  disabled={createInvoiceMutation.isPending || createCustomerMutation.isPending}
+                >
+                  {(createInvoiceMutation.isPending || createCustomerMutation.isPending) && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
                   Create Invoice
                 </Button>
               </CardContent>

@@ -22,6 +22,11 @@ import Accounting from "@/pages/accounting";
 import AccountingSummary from "@/pages/accounting-summary";
 import AiAssistant from "@/pages/ai";
 import Settings from "@/pages/settings";
+import Customers from "@/pages/customers";
+import Transactions from "@/pages/transactions";
+import GstReport from "@/pages/gst-report";
+import CreditDebit from "@/pages/credit-debit";
+import Alerts from "@/pages/alerts";
 
 const queryClient = new QueryClient();
 
@@ -31,14 +36,19 @@ function AuthenticatedApp() {
       <AppLayout>
         <Switch>
           <Route path="/dashboard" component={Dashboard} />
-          <Route path="/invoices" component={Invoices} />
           <Route path="/invoices/new" component={NewInvoice} />
           <Route path="/invoices/:id" component={InvoiceDetail} />
-          <Route path="/inventory" component={Inventory} />
+          <Route path="/invoices" component={Invoices} />
           <Route path="/inventory/new" component={NewProduct} />
           <Route path="/inventory/:id" component={EditProduct} />
+          <Route path="/inventory" component={Inventory} />
+          <Route path="/customers" component={Customers} />
+          <Route path="/transactions" component={Transactions} />
           <Route path="/accounting" component={Accounting} />
           <Route path="/accounting/summary" component={AccountingSummary} />
+          <Route path="/credit-debit" component={CreditDebit} />
+          <Route path="/gst-report" component={GstReport} />
+          <Route path="/alerts" component={Alerts} />
           <Route path="/ai" component={AiAssistant} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
@@ -68,7 +78,7 @@ function Router() {
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>

@@ -1,0 +1,347 @@
+Build Version 2 of the existing AI-powered desktop ERP application.
+
+==================================================
+PRODUCT CONTEXT
+==================================================
+
+The application is a desktop ERP for Indian SMEs with:
+- authentication
+- local-first SQLite storage
+- invoice generation
+- inventory tracking
+- accounting basics
+- AI assistant
+- theme toggle
+- plan gating foundation
+- clean desktop UI
+
+Version 2 must transform it into a cloud-connected paid product.
+
+==================================================
+VERSION 2 OBJECTIVE
+==================================================
+
+Add:
+- subscription plans
+- Razorpay and PhonePe billing support
+- cloud backup and restore
+- sync architecture foundation
+- device binding
+- license validation
+- encrypted local storage
+- audit logs
+- improved AI actions
+- notification system
+- billing and usage UI
+
+The app must still work offline using local data.
+
+==================================================
+CORE PLAN MODEL
+==================================================
+
+Plans:
+- Free
+- Pro Monthly
+- Pro Yearly
+
+Rules:
+- Free users have limited AI access and limited cloud features.
+- Pro users get full app access, cloud backup, and higher usage limits.
+- Expired users fall back to read-only mode.
+- Plan enforcement must happen on the backend.
+- The frontend may hide controls, but backend decides permission.
+
+==================================================
+SUBSCRIPTION AND BILLING
+==================================================
+
+Implement:
+- plan listing
+- checkout initiation
+- payment verification
+- subscription activation
+- renewal
+- expiry handling
+- downgrade handling
+- billing history
+- payment status tracking
+
+Use Razorpay and PhonePe integrations as secure server-side flows.
+Do not trust client-side success flags.
+Use webhooks or server verification for payment confirmation.
+
+==================================================
+DEVICE BINDING AND LICENSE VALIDATION
+==================================================
+
+Implement:
+- device registration
+- device fingerprinting
+- device validation on app startup
+- allowed device count per plan
+- revoke device flow
+- license status validation
+- offline cache for temporary validity
+- refresh validation when internet is available
+
+==================================================
+CLOUD BACKUP AND RESTORE
+==================================================
+
+Implement:
+- manual backup
+- automatic backup trigger
+- restore from backup
+- backup history
+- backup quota tracking
+- storage usage display
+- conflict-safe restore strategy
+- backup status notifications
+
+Cloud storage should support future sync expansion.
+Local SQLite remains primary for desktop usage.
+
+==================================================
+SYNC FOUNDATION
+==================================================
+
+Do not build a risky, overcomplicated sync engine in Version 2.
+Instead create:
+- sync queue
+- sync state tracking
+- last synced timestamps
+- push/pull-ready structure
+- conflict markers
+- retry mechanism
+- future-ready cloud sync services
+
+==================================================
+AI ASSISTANT UPGRADE
+==================================================
+
+The assistant must:
+- answer business questions
+- read app data
+- summarize invoices, revenue, inventory, and plans
+- understand controlled action commands
+- require confirmation for sensitive actions
+- log every action
+- return structured outputs
+
+Supported commands include:
+- show revenue
+- list unpaid invoices
+- show low stock items
+- backup my data
+- restore last backup
+- show subscription status
+- upgrade to pro
+- create invoice with confirmation
+- mark payment received with confirmation
+
+The AI layer must include:
+- intent detection
+- entity extraction
+- permission checking
+- action routing
+- audit logging
+
+==================================================
+UI AND UX
+==================================================
+
+Keep the same premium desktop ERP design language from Version 1.
+Enhance it with new screens:
+- subscription page
+- billing page
+- backup page
+- restore page
+- device management page
+- sync status page
+- plan status page
+- AI history page
+
+Style:
+- clean
+- minimal
+- professional
+- premium
+- desktop-first
+- polished spacing
+- strong visual hierarchy
+- smooth transitions
+
+Theme:
+- dark mode remains default
+- light mode must remain fully supported
+- theme persistence must continue working
+
+==================================================
+DATABASE
+==================================================
+
+Extend the schema for both SQLite and PostgreSQL.
+
+Local SQLite should include:
+- users
+- sessions
+- devices
+- plans
+- subscriptions
+- payments
+- backup_jobs
+- sync_queue
+- sync_history
+- notifications
+- ai_prompt_logs
+- audit_logs
+- app_settings
+- products
+- customers
+- invoices
+- invoice_items
+- transactions
+
+Cloud PostgreSQL should support:
+- account records
+- subscription records
+- payment history
+- device records
+- backup metadata
+- sync state
+- usage counters
+- audit logs
+
+Use:
+- timestamps
+- status fields
+- indexes
+- foreign keys
+- soft delete where useful
+
+==================================================
+API ENDPOINTS
+==================================================
+
+Create backend APIs for:
+- auth
+- subscription status
+- plan list
+- payment initiation
+- payment verification
+- webhook handling
+- backup creation
+- backup listing
+- backup restore
+- sync push/pull
+- device register
+- device validate
+- device revoke
+- AI prompt processing
+- AI action logging
+- settings and profile
+
+Every API must include:
+- request validation
+- authentication checks
+- permission checks
+- clear error handling
+- consistent response format
+- audit logging where relevant
+
+==================================================
+SECURITY
+==================================================
+
+Implement:
+- JWT sessions
+- refresh tokens
+- secure secrets handling
+- encrypted local sensitive data
+- server-side plan validation
+- device binding
+- payment verification on server
+- audit trail
+- safe offline fallback
+
+Never expose secrets in the UI layer.
+Never trust the frontend for billing or permission decisions.
+
+==================================================
+ARCHITECTURE
+==================================================
+
+Keep the project modular.
+
+Suggested structure:
+- electron
+- frontend
+- backend
+- shared
+- assets
+- scripts
+- docs
+
+Separate modules for:
+- auth
+- billing
+- backup
+- sync
+- ai
+- invoices
+- inventory
+- accounting
+- notifications
+- settings
+- device management
+
+==================================================
+IMPLEMENTATION ORDER
+==================================================
+
+Build in this order:
+1. plan and subscription schema
+2. payment integration structure
+3. backend plan validation
+4. device binding
+5. cloud backup and restore
+6. sync foundation
+7. AI upgrade
+8. notifications
+9. security hardening
+10. UI for billing and cloud features
+11. testing and error handling
+12. packaging readiness
+
+==================================================
+OUTPUT EXPECTATION
+==================================================
+
+Provide:
+- updated folder structure
+- backend code
+- frontend code
+- database schema changes
+- payment flow
+- backup and restore flow
+- sync foundation
+- AI enhancements
+- device binding logic
+- secure billing and plan enforcement
+- UI components
+- setup instructions
+- run instructions
+- migration notes from V1 to V2
+
+If the full implementation is too large for one response, split it into clean modules while keeping naming and architecture consistent.
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+Treat this like a real commercial desktop ERP product.
+Preserve Version 1.
+Extend carefully.
+Prioritize trust, security, and usability.
+Version 2 should feel like a true paid software platform.
