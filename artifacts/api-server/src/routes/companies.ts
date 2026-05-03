@@ -65,6 +65,49 @@ router.post("/companies", requireAuth, async (req: AuthRequest, res) => {
   res.status(201).json({ company });
 });
 
+router.get("/companies/:id", requireAuth, async (req: AuthRequest, res) => {
+  const id = parseInt(req.params.id as string);
+  const [membership] = await db.select().from(companyMembersTable)
+    .where(and(eq(companyMembersTable.companyId, id), eq(companyMembersTable.userId, req.userId!)))
+    .limit(1);
+
+  if (!membership) {
+    res.status(403).json({ error: "Forbidden", message: "You are not a member of this company" });
+    return;
+  }
+
+  const [company] = await db.select().from(companiesTable)
+    .where(and(eq(companiesTable.id, id), eq(companiesTable.isDeleted, false)))
+    .limit(1);
+
+  if (!company) { res.status(404).json({ error: "Not found", message: "Company not found" }); return; }
+  res.json({ company: { ...company, role: membership.role, isOwner: membership.isOwner } });
+});
+
+router.delete("/companies/:id", requireAuth, async (req: AuthRequest, res) => {
+  const id = parseInt(req.params.id as string);
+  const [membership] = await db.select().from(companyMembersTable)
+    .where(and(eq(companyMembersTable.companyId, id), eq(companyMembersTable.userId, req.userId!), eq(companyMembersTable.isOwner, true)))
+    .limit(1);
+
+  if (!membership) {
+    res.status(403).json({ error: "Forbidden", message: "Only the company owner can delete it" });
+    return;
+  }
+
+  await db.update(companiesTable).set({ isDeleted: true, updatedAt: new Date() }).where(eq(companiesTable.id, id));
+
+  await db.insert(auditLogsTable).values({
+    userId: req.userId!,
+    action: "company_deleted",
+    entity: "company",
+    entityId: String(id),
+    description: "Company deleted",
+  });
+
+  res.json({ success: true, message: "Company deleted" });
+});
+
 router.put("/companies/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
   const { name, legalName, gstin, pan, businessType, address, city, state, pincode, phone, email, website, currency, financialYearStart } = req.body;

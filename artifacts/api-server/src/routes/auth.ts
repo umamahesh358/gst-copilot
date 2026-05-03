@@ -102,6 +102,40 @@ router.post("/auth/logout", (_req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+router.put("/auth/profile", requireAuth, async (req: AuthRequest, res) => {
+  const { name, businessName, businessType, gstNumber, address, phone } = req.body;
+  if (!name && !businessName) {
+    res.status(400).json({ error: "Validation error", message: "At least one field required" });
+    return;
+  }
+  const updateFields: Record<string, unknown> = { updatedAt: new Date() };
+  if (name) updateFields.name = name;
+  if (businessName) updateFields.businessName = businessName;
+  if (businessType !== undefined) updateFields.businessType = businessType;
+  if (gstNumber !== undefined) updateFields.gstNumber = gstNumber;
+  if (address !== undefined) updateFields.address = address;
+  if (phone !== undefined) updateFields.phone = phone;
+
+  const [user] = await db.update(usersTable)
+    .set(updateFields as any)
+    .where(eq(usersTable.id, req.userId!))
+    .returning();
+
+  if (!user) { res.status(404).json({ error: "Not found" }); return; }
+
+  await db.update(appSettingsTable)
+    .set({ businessName: user.businessName, updatedAt: new Date() })
+    .where(eq(appSettingsTable.userId, req.userId!));
+
+  res.json({
+    id: user.id, name: user.name, email: user.email,
+    businessName: user.businessName, plan: user.plan,
+    onboardingComplete: user.onboardingComplete,
+    businessType: user.businessType, gstNumber: user.gstNumber,
+    address: user.address, phone: user.phone,
+  });
+});
+
 router.get("/auth/me", requireAuth, async (req: AuthRequest, res) => {
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
   if (!user) {

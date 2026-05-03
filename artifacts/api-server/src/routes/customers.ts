@@ -69,6 +69,49 @@ router.post("/customers", requireAuth, async (req: AuthRequest, res) => {
   res.status(201).json({ ...customer, totalInvoices: 0, totalSpent: 0 });
 });
 
+router.put("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
+  const id = parseInt(req.params.id as string);
+  const { name, email, phone, gstNumber, address, city, state } = req.body;
+
+  const [existing] = await db.select().from(customersTable).where(eq(customersTable.id, id)).limit(1);
+  if (!existing) { res.status(404).json({ error: "Not found", message: "Customer not found" }); return; }
+
+  const [customer] = await db.update(customersTable).set({
+    name: name ?? existing.name,
+    email: email ?? existing.email,
+    phone: phone ?? existing.phone,
+    gstNumber: gstNumber ?? existing.gstNumber,
+    address: address ?? existing.address,
+    city: city ?? existing.city,
+    state: state ?? existing.state,
+    updatedAt: new Date(),
+  }).where(eq(customersTable.id, id)).returning();
+
+  await db.insert(activityLogTable).values({
+    type: "customer_updated",
+    title: "Customer updated",
+    description: `Customer "${customer.name}" was updated`,
+  });
+
+  res.json({ ...customer, totalInvoices: 0, totalSpent: 0 });
+});
+
+router.delete("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
+  const id = parseInt(req.params.id as string);
+  const [existing] = await db.select().from(customersTable).where(eq(customersTable.id, id)).limit(1);
+  if (!existing) { res.status(404).json({ error: "Not found", message: "Customer not found" }); return; }
+
+  await db.delete(customersTable).where(eq(customersTable.id, id));
+
+  await db.insert(activityLogTable).values({
+    type: "customer_deleted",
+    title: "Customer deleted",
+    description: `Customer "${existing.name}" was removed`,
+  });
+
+  res.json({ success: true, message: `Customer "${existing.name}" deleted` });
+});
+
 router.get("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
   const [customer] = await db.select().from(customersTable)

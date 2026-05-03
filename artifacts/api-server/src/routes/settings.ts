@@ -20,13 +20,12 @@ router.get("/settings", requireAuth, async (req: AuthRequest, res) => {
   res.json(settings);
 });
 
-router.patch("/settings", requireAuth, async (req: AuthRequest, res) => {
+async function handleSettingsUpdate(req: AuthRequest, res: import("express").Response) {
   const result = UpdateSettingsBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });
     return;
   }
-
   const data = result.data;
   const updateData: Record<string, unknown> = { updatedAt: new Date() };
   if (data.theme !== undefined) updateData.theme = data.theme;
@@ -49,8 +48,10 @@ router.patch("/settings", requireAuth, async (req: AuthRequest, res) => {
     res.status(404).json({ error: "Not found", message: "Settings not found" });
     return;
   }
-
   res.json(settings);
-});
+}
+
+router.patch("/settings", requireAuth, handleSettingsUpdate);
+router.put("/settings", requireAuth, handleSettingsUpdate);
 
 export default router;
