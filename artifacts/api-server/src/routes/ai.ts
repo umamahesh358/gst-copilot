@@ -269,6 +269,76 @@ CONTENT RULES:
   });
 });
 
+router.post("/ai/extract-invoice", requireAuth, async (req: AuthRequest, res) => {
+  const { imageBase64, mimeType } = req.body as { imageBase64?: string; mimeType?: string };
+  if (!imageBase64) {
+    res.status(400).json({ error: "Bad request", message: "imageBase64 is required" });
+    return;
+  }
+  const mime = mimeType || "image/jpeg";
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      max_tokens: 1500,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: `data:${mime};base64,${imageBase64}`, detail: "high" },
+            },
+            {
+              type: "text",
+              text: `You are an expert at reading Indian GST invoices. Extract all details from this invoice image and return ONLY a valid JSON object (no markdown, no explanation) with exactly this structure:
+{
+  "invoiceNumber": "string or empty",
+  "invoiceDate": "YYYY-MM-DD or empty",
+  "sellerName": "string or empty",
+  "sellerGstin": "string or empty",
+  "sellerAddress": "string or empty",
+  "buyerName": "string or empty",
+  "buyerGstin": "string or empty",
+  "buyerAddress": "string or empty",
+  "notes": "string or empty",
+  "items": [
+    {
+      "productName": "string",
+      "hsnCode": "string or empty",
+      "quantity": number,
+      "unitPrice": number,
+      "gstRate": number
+    }
+  ]
+}
+Rules:
+- gstRate must be one of: 0, 5, 12, 18, 28
+- unitPrice must be the base price BEFORE GST
+- quantity and unitPrice must be positive numbers
+- If you cannot read a field clearly, use an empty string or 0
+- Return at least one item in items array`,
+            },
+          ],
+        },
+      ],
+    });
+
+    const raw = response.choices[0]?.message?.content || "{}";
+    const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    let extracted: Record<string, unknown> = {};
+    try {
+      extracted = JSON.parse(cleaned);
+    } catch {
+      res.status(422).json({ error: "Parse error", message: "Could not parse AI response as JSON" });
+      return;
+    }
+    res.json(extracted);
+  } catch (err: any) {
+    req.log.error({ err }, "extract-invoice AI error");
+    res.status(500).json({ error: "AI error", message: err.message || "Failed to extract invoice data" });
+  }
+});
+
 router.get("/ai/history", requireAuth, async (req: AuthRequest, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const logs = await db.select().from(aiPromptLogsTable)

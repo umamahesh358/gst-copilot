@@ -33,9 +33,18 @@ export default function EditProduct() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const { data: product, isLoading } = useGetProduct(Number(id), {
-    query: { enabled: !!id, queryKey: getGetProductQueryKey(Number(id)) }
+
+  const numericId = Number(id);
+  const isValidId = !!id && id !== "new" && !isNaN(numericId) && numericId > 0;
+
+  useEffect(() => {
+    if (!isValidId) {
+      setLocation("/inventory/new");
+    }
+  }, [isValidId, setLocation]);
+
+  const { data: product, isLoading } = useGetProduct(numericId, {
+    query: { enabled: isValidId, queryKey: getGetProductQueryKey(numericId) }
   });
   
   const updateProductMutation = useUpdateProduct();

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Printer, Save, FileText } from "lucide-react";
+import { Loader2, Plus, Trash2, Printer, Save, FileText, Camera, Upload, X, Sparkles, CheckCircle2 } from "lucide-react";
 
 const lineItemSchema = z.object({
   productName: z.string().min(1, "Item name required"),
@@ -47,6 +47,11 @@ export default function InvoiceGenerator() {
   const { data: productsData } = useListProducts({ limit: 200 });
   const { data: settingsData } = useGetSettings();
   const printRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [extracting, setExtracting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [extracted, setExtracted] = useState(false);
 
   const settings = settingsData;
   const products = productsData?.products || [];
@@ -68,7 +73,7 @@ export default function InvoiceGenerator() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" });
+  const { fields, append, remove, replace } = useFieldArray({ control: form.control, name: "items" });
   const watchedItems = form.watch("items");
 
   const calcTotals = () => {
@@ -85,7 +90,6 @@ export default function InvoiceGenerator() {
   const { subtotal, gstAmount } = calcTotals();
   const grandTotal = subtotal + gstAmount;
 
-  // GST breakup by rate
   const gstBreakup = watchedItems.reduce<Record<number, { taxable: number; cgst: number; sgst: number }>>((acc, item) => {
     const sub = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
     const rate = Number(item.gstRate) || 0;
@@ -99,8 +103,83 @@ export default function InvoiceGenerator() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = () => window.print();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Please upload an image file (JPG, PNG, etc.)" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setPreviewUrl(dataUrl);
+
+      const base64 = dataUrl.split(",")[1];
+      const mimeType = file.type;
+
+      setExtracting(true);
+      setExtracted(false);
+      try {
+        const token = localStorage.getItem("bizos_token");
+        const res = await fetch("/api/ai/extract-invoice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ imageBase64: base64, mimeType }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || "Failed to extract invoice data");
+        }
+
+        const data = await res.json();
+
+        if (data.invoiceNumber) form.setValue("invoiceNumber", data.invoiceNumber);
+        if (data.invoiceDate) form.setValue("invoiceDate", data.invoiceDate);
+        if (data.sellerName) form.setValue("sellerName", data.sellerName);
+        if (data.sellerGstin) form.setValue("sellerGstin", data.sellerGstin);
+        if (data.sellerAddress) form.setValue("sellerAddress", data.sellerAddress);
+        if (data.buyerName) form.setValue("buyerName", data.buyerName);
+        if (data.buyerGstin) form.setValue("buyerGstin", data.buyerGstin);
+        if (data.buyerAddress) form.setValue("buyerAddress", data.buyerAddress);
+        if (data.notes) form.setValue("notes", data.notes);
+
+        if (Array.isArray(data.items) && data.items.length > 0) {
+          const validRates = [0, 5, 12, 18, 28];
+          const mappedItems = data.items.map((item: any) => ({
+            productName: item.productName || "Unknown Item",
+            hsnCode: item.hsnCode || "",
+            quantity: Math.max(1, Number(item.quantity) || 1),
+            unitPrice: Math.max(0, Number(item.unitPrice) || 0),
+            gstRate: validRates.includes(Number(item.gstRate)) ? Number(item.gstRate) : 18,
+          }));
+          replace(mappedItems);
+        }
+
+        setExtracted(true);
+        toast({ title: "Invoice extracted!", description: "Fields have been filled from your invoice image." });
+      } catch (err: any) {
+        toast({ variant: "destructive", title: "Extraction failed", description: err.message || "Could not read invoice. Please fill manually." });
+        setPreviewUrl(null);
+      } finally {
+        setExtracting(false);
+        if (e.target) e.target.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearPhoto = () => {
+    setPreviewUrl(null);
+    setExtracted(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const onSubmit = (values: FormValues) => {
@@ -173,6 +252,100 @@ export default function InvoiceGenerator() {
           </Button>
         </div>
       </div>
+
+      {/* Photo Upload / AI Extract */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      {!previewUrl ? (
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="group cursor-pointer rounded-2xl border-2 border-dashed border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-400 dark:hover:border-indigo-600 transition-all p-5"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900 transition-colors">
+              <Camera className="h-6 w-6 text-indigo-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                Extract from Invoice Photo
+              </p>
+              <p className="text-xs text-indigo-600/70 dark:text-indigo-400 mt-0.5">
+                Take a photo or upload an image of any invoice — AI will read and auto-fill all the fields for you
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium group-hover:bg-indigo-700 transition-colors">
+                <Upload className="h-3.5 w-3.5" />
+                Upload Photo
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0">
+              <img src={previewUrl} alt="Invoice preview" className="h-20 w-28 object-cover rounded-xl border border-gray-200 dark:border-gray-700" />
+              {extracting && (
+                <div className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center">
+                  <Loader2 className="h-5 w-5 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              {extracting ? (
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                    Reading your invoice...
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">AI is extracting seller, buyer, and item details</p>
+                </div>
+              ) : extracted ? (
+                <div>
+                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Invoice extracted successfully!
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">All fields have been filled from your invoice. Review and edit below.</p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400">Invoice image ready</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {!extracting && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs gap-1"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-3 w-3" /> Change
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-xl text-gray-400 hover:text-red-500"
+                    onClick={clearPhoto}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-5" ref={printRef}>
         {/* Main Form */}
