@@ -1,4 +1,4 @@
-# BizOS — AI-Powered ERP for Indian SMEs (V3)
+# BizOS — AI-Powered ERP for Indian SMEs (V4)
 
 ## Overview
 A production-grade ERP web application for Indian small and medium enterprises. V3 extends V2 into an intelligence, automation, and collaboration platform.
@@ -41,6 +41,16 @@ lib/
 - `ai_prompt_logs` — AI query history with intent classification
 - `app_settings` — per-user business config, theme, GST settings
 - `activity_log` — audit trail for dashboard feed
+
+### V4 Tables (NEW)
+- `integration_connections` — external service connections (provider, encrypted credentials, health status, sync count)
+- `webhook_endpoints` — outgoing webhook URLs with HMAC signing secret, event subscriptions
+- `webhook_deliveries` — per-delivery log (status, response code, attempt count, retry queue)
+- `import_jobs` — CSV/XLSX import sessions (preview, column mapping, merge strategy, row counts)
+- `export_jobs` — export sessions (module, format, filters, row count)
+- `custom_fields` — per-module user-defined fields (text/number/date/select/etc.)
+- `custom_field_values` — per-entity custom field values
+- `branding_settings` — per-user app branding and deployment mode config
 
 ### V3 Tables
 - `companies` — multi-company support (name, GSTIN, address, type)

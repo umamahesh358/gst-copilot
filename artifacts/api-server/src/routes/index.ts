@@ -19,6 +19,11 @@ import approvalsRouter from "./approvals";
 import automationRouter from "./automation";
 import auditRouter from "./audit";
 import companiesRouter from "./companies";
+import integrationsRouter from "./integrations";
+import webhooksRouter from "./webhooks";
+import importExportRouter from "./import-export";
+import customFieldsRouter from "./custom-fields";
+import systemRouter from "./system";
 
 const router: IRouter = Router();
 
@@ -42,5 +47,10 @@ router.use(approvalsRouter);
 router.use(automationRouter);
 router.use(auditRouter);
 router.use(companiesRouter);
+router.use(integrationsRouter);
+router.use(webhooksRouter);
+router.use(importExportRouter);
+router.use(customFieldsRouter);
+router.use(systemRouter);
 
 export default router;

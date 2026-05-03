@@ -28,6 +28,12 @@ import {
   History,
   Workflow,
   Truck,
+  Plug,
+  Webhook,
+  ArrowUpDown,
+  SlidersHorizontal,
+  Activity,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -63,6 +69,15 @@ const teamItems = [
   { name: "Approvals", href: "/approvals", icon: ClipboardList },
   { name: "Workflows", href: "/workflows", icon: Workflow },
   { name: "Audit Log", href: "/audit-log", icon: History },
+];
+
+const ecosystemItems = [
+  { name: "Integrations", href: "/integrations", icon: Plug },
+  { name: "Webhooks & Events", href: "/webhooks", icon: Webhook },
+  { name: "Import / Export", href: "/import-export", icon: ArrowUpDown },
+  { name: "Custom Fields", href: "/custom-fields", icon: SlidersHorizontal },
+  { name: "System Health", href: "/system-health", icon: Activity },
+  { name: "Branding", href: "/branding", icon: Palette },
 ];
 
 const cloudItems = [
@@ -112,8 +127,11 @@ export function Sidebar() {
     );
   };
 
-  const SectionLabel = ({ label }: { label: string }) => (
-    <p className="px-3 mb-1 mt-4 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600">{label}</p>
+  const SectionLabel = ({ label, badge }: { label: string; badge?: string }) => (
+    <div className="flex items-center gap-2 px-3 mb-1 mt-4">
+      <p className="text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-600">{label}</p>
+      {badge && <span className="text-[9px] font-bold bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 rounded px-1 py-0.5">{badge}</span>}
+    </div>
   );
 
   return (
@@ -126,7 +144,7 @@ export function Sidebar() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-base text-gray-900 dark:text-white tracking-tight">BizOS</span>
-            <span className="text-[9px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 rounded px-1 py-0.5">V3</span>
+            <span className="text-[9px] font-semibold bg-indigo-600 text-white rounded px-1 py-0.5">V4</span>
             {user?.plan === "pro" && (
               <span className="text-[9px] font-semibold bg-amber-400 text-amber-900 rounded px-1 py-0.5">PRO</span>
             )}
@@ -157,6 +175,12 @@ export function Sidebar() {
         <SectionLabel label="Team & Automation" />
         <div className="space-y-0.5">
           {teamItems.map((item) => <NavItem key={item.name} item={item} />)}
+        </div>
+
+        {/* Ecosystem — V4 */}
+        <SectionLabel label="Ecosystem" badge="V4" />
+        <div className="space-y-0.5">
+          {ecosystemItems.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
         {/* Cloud */}

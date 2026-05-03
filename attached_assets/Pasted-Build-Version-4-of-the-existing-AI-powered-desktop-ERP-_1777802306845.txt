@@ -1,0 +1,587 @@
+Build Version 4 of the existing AI-powered desktop ERP application.
+
+==================================================
+VERSION 4 GOAL
+==================================================
+
+Version 4 is the "Ecosystem, Integrations, and Enterprise Readiness Release".
+
+The purpose of Version 4 is to evolve the product beyond standalone ERP + analytics into a highly connected platform that can:
+- integrate with external business tools
+- send and receive notifications across channels
+- expose secure APIs and webhooks
+- support plugin/connectors architecture
+- allow custom fields and custom workflows
+- prepare for mobile companion access
+- support white-label and enterprise deployment options
+- enable advanced export/import and data portability
+- provide deeper admin controls and observability
+
+The application should now feel like a serious business operating system and integration platform for SMEs, accountants, operations teams, and growing enterprises.
+
+==================================================
+PRODUCT CONTEXT
+==================================================
+
+The product already includes:
+- desktop app shell
+- authentication
+- subscriptions and billing
+- plan enforcement
+- local SQLite data
+- cloud backup and restore
+- device binding
+- license validation
+- invoices
+- inventory
+- accounting
+- expenses/purchases/payables
+- OCR/document intelligence
+- team collaboration
+- permissions and approvals
+- AI assistant
+- automation workflows
+- analytics dashboards
+- theme system
+- secure architecture
+- audit logs
+
+Version 4 must extend those foundations with external connectivity, extensibility, and enterprise-grade control.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Turn the app into a connected ERP platform that can:
+- integrate with communication channels like email, WhatsApp-style messaging, and SMS gateways through secure providers
+- integrate with accounting, CRM, payment, storage, and notification services through connectors
+- expose webhooks and API endpoints for external systems
+- support import/export between formats and systems
+- support user-defined custom fields and custom entities where appropriate
+- provide enterprise admin controls and deployment choices
+- support mobile companion readiness through APIs
+- enable plugin-like extensions or connector modules
+- provide observability, logs, and integration health tracking
+
+==================================================
+VERSION 4 FEATURE SCOPE
+==================================================
+
+Build the following in Version 4:
+
+1. INTEGRATION HUB
+- Create a central integrations page
+- Support connection management for external services
+- Allow users to enable/disable integrations
+- Store integration credentials securely
+- Show integration health, last sync time, and error state
+- Support retry and reauthorization flows
+- Make integrations modular and pluggable
+
+Examples of integrations:
+- email provider
+- SMS provider
+- messaging provider
+- payment provider callbacks
+- cloud storage providers
+- external accounting import/export endpoints
+- CRM/customer data sync endpoints
+- reporting/export destinations
+
+2. WEBHOOKS AND EVENT SYSTEM
+- Internal event system for app actions
+- Outgoing webhooks when important events occur
+- Event subscriptions for integrations
+- Retry strategy for webhook delivery
+- Dead-letter logging for failed delivery
+- Event history and delivery status
+- Secure signing of webhook payloads
+
+Examples of events:
+- invoice.created
+- invoice.paid
+- stock.low
+- payment.received
+- backup.completed
+- subscription.renewed
+- approval.requested
+- document.ocr.completed
+- alert.triggered
+
+3. NOTIFICATION CHANNEL EXPANSION
+- In-app notifications already exist; extend them
+- Add email notifications
+- Add SMS notifications
+- Add provider-based message delivery architecture
+- Support templated messages
+- Support notification preferences per company and role
+- Track delivery status and failures
+- Add notification digest and scheduling options
+
+4. IMPORT / EXPORT SYSTEM
+- CSV import/export
+- Excel-like spreadsheet import/export
+- PDF export improvements
+- Data migration import tools
+- Customer, vendor, product, invoice, expense, and transaction imports
+- Export by date range, company, module, and filter
+- Field mapping UI for imports
+- Validation and preview before import
+- Duplicate detection and safe merge options
+
+5. CUSTOM FIELDS AND CONFIGURATION
+- Allow custom fields for selected modules
+- Support custom labels and display order
+- Allow per-company configuration for business-specific needs
+- Enable custom invoice fields, customer fields, product fields, vendor fields, and expense fields
+- Support field validation rules
+- Keep custom configuration safe and versioned
+
+6. MOBILE COMPANION READINESS
+- Prepare an API layer for future mobile access
+- Expose secure endpoints for dashboard, invoices, inventory, approvals, notifications, and AI summaries
+- Do not necessarily build the mobile app UI in Version 4 unless requested
+- Make the backend ready for a companion app or PWA later
+- Support token-based access, role-based visibility, and read-only mobile modes
+
+7. ENTERPRISE ADMIN AND OBSERVABILITY
+- Admin dashboard for system health
+- Integration health monitoring
+- Sync failure tracking
+- Webhook status monitoring
+- Audit log search and filters
+- Error log viewer
+- Usage analytics by company and module
+- Security events panel
+- API request tracing metadata where appropriate
+
+8. DEPLOYMENT MODES
+- Support deployment configuration profiles:
+  - local desktop mode
+  - cloud-connected mode
+  - self-hosted enterprise mode
+- Add environment-based configuration support
+- Support local-only install for small businesses
+- Support company-controlled hosted setup for larger users
+- Keep the architecture flexible and documented
+
+9. MULTI-INSTANCE / WHITE-LABEL READINESS
+- Add configuration for branded deployment support
+- Support app name, logo, theme accent, and company branding overrides
+- Keep the structure ready for a future white-label build
+- Do not overbuild branding, but create proper abstraction
+
+10. ADVANCED AI CONNECTOR SUPPORT
+- Allow AI assistant to use external connectors safely
+- Let AI summarize messages, notifications, and imported data
+- Let AI propose actions based on integration events
+- Require permission checks before executing external side effects
+- Keep the AI tool layer auditable and conservative
+
+==================================================
+BUSINESS BEHAVIOR
+==================================================
+
+The system should be able to distinguish:
+- company context
+- module context
+- user role
+- permission level
+- subscription access
+- integration access
+- connector health
+- event type
+- external provider state
+- AI confidence
+- action sensitivity
+
+Rules:
+- Read-only external queries should be safe.
+- Write actions to external systems should be permission-checked and confirmation-based.
+- Sensitive integration actions should require admin approval where needed.
+- Imported data must be validated before saving.
+- Webhook deliveries must be signed, retried, and audited.
+- Company data must remain isolated.
+- Audit logs must capture who did what, when, and in which company and integration.
+
+==================================================
+USER EXPERIENCE
+==================================================
+
+The UI must remain premium, minimal, and desktop-first.
+
+Add new screens for:
+- integrations hub
+- webhooks dashboard
+- event history
+- notification channels
+- import/export center
+- field mapping wizard
+- custom fields manager
+- deployment settings
+- system health dashboard
+- logs and observability view
+- connector setup pages
+- branding settings
+
+Design requirements:
+- clean layout
+- minimal clutter
+- strong spacing
+- card-based information
+- crisp tables
+- smooth transitions
+- polished empty states
+- clear badges and status indicators
+- filterable lists
+- provider logos/icons where relevant
+- understandable setup flows for non-technical users
+
+Theme requirements:
+- preserve dark mode
+- preserve light mode
+- keep theme persistence
+- keep UI consistent across all new modules
+
+==================================================
+DATABASE REQUIREMENTS
+==================================================
+
+Extend the data model for both local and cloud layers.
+
+Add or expand entities such as:
+- users
+- companies
+- company_members
+- roles
+- permissions
+- subscriptions
+- plans
+- devices
+- products
+- customers
+- vendors
+- invoices
+- invoice_items
+- transactions
+- expenses
+- purchases
+- payables
+- receivables
+- document_uploads
+- ocr_extractions
+- ai_chat_sessions
+- ai_prompt_logs
+- analytics_snapshots
+- notifications
+- notification_deliveries
+- audit_logs
+- backup_jobs
+- sync_history
+- automation_rules
+- approval_requests
+- integration_connections
+- integration_events
+- webhook_endpoints
+- webhook_deliveries
+- import_jobs
+- export_jobs
+- custom_fields
+- custom_field_values
+- system_health_metrics
+- deployment_profiles
+- branding_settings
+
+Requirements:
+- foreign keys
+- timestamps
+- status fields
+- soft delete where useful
+- indexes on search and filter fields
+- audit metadata
+- company scoping on business data
+- integration scoping where relevant
+- delivery status and retry counters
+- versioning for imports and custom fields
+
+==================================================
+API REQUIREMENTS
+==================================================
+
+Create backend APIs for:
+
+Authentication and session:
+- login
+- signup
+- refresh
+- logout
+- validate session
+
+Company and team:
+- create company
+- switch company
+- list companies
+- manage members
+- update roles and permissions
+
+Integrations:
+- list integrations
+- create integration connection
+- update integration connection
+- delete integration connection
+- test integration
+- reauthorize integration
+- get integration health
+
+Webhooks and events:
+- list webhook endpoints
+- create webhook endpoint
+- update webhook endpoint
+- delete webhook endpoint
+- trigger webhook test
+- list events
+- list webhook deliveries
+- retry failed delivery
+
+Notifications:
+- get notification channels
+- update notification preferences
+- send notification
+- schedule notification
+- get delivery history
+
+Import/export:
+- upload import file
+- map import fields
+- preview import
+- confirm import
+- export data
+- get import history
+- get export history
+
+Custom fields:
+- create custom field
+- update custom field
+- delete custom field
+- list custom fields
+- save custom field values
+- fetch custom field values
+
+Deployment and branding:
+- get deployment profile
+- update deployment settings
+- update branding settings
+- fetch system health
+
+AI:
+- send prompt
+- return structured insights
+- context-aware query processing
+- connector-aware AI action suggestions
+- AI action logging
+- permission checks
+- confidence scoring
+
+Audit and observability:
+- list audit logs
+- filter logs
+- system event history
+- error logs
+- health metrics
+
+Every API must have:
+- validation
+- authentication
+- permission checks
+- company context checks
+- integration context checks where needed
+- error handling
+- audit logging
+- consistent response structure
+
+==================================================
+AI SYSTEM REQUIREMENTS
+==================================================
+
+The AI assistant must now behave like a connected business operator and analyst.
+
+It should:
+- understand company-specific data
+- summarize internal and external events
+- propose actions from notification or webhook events
+- help configure integrations
+- explain delivery failures
+- help with import mapping and validation
+- support follow-up conversation
+- safely execute only allowed actions
+- create structured outputs for reports, messages, and workflows
+
+The AI layer should support:
+- intent detection
+- entity extraction
+- workflow routing
+- tool/action calling
+- permission checking
+- confirmation prompts
+- audit logging
+- confidence scoring
+- fallback behavior when uncertain
+
+Examples:
+- "Send invoice reminders to overdue customers by email."
+- "Import this CSV and map the customer fields."
+- "Show failed webhook deliveries."
+- "Connect my email provider."
+- "Export all invoices from this quarter."
+- "Create a notification rule when stock is low."
+
+==================================================
+INTEGRATION REQUIREMENTS
+==================================================
+
+Design an integration framework with:
+- provider adapters
+- secure secret storage
+- credential encryption
+- health checks
+- retry logic
+- rate limiting awareness
+- failure classification
+- event emission
+- logs and metrics
+- connection wizard UI
+
+Integrations should be swappable and provider-agnostic where possible.
+
+==================================================
+IMPORT / EXPORT REQUIREMENTS
+==================================================
+
+Build a robust import/export pipeline with:
+- file validation
+- preview before commit
+- column mapping
+- duplicate detection
+- merge strategy
+- rollback support for failed imports
+- structured export filters
+- batch processing for larger datasets
+- user-friendly progress indicators
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+Maintain and strengthen the security model:
+- JWT and refresh tokens
+- device validation
+- encrypted local sensitive data
+- server-side permission checks
+- audit logs
+- company isolation
+- secure secret handling
+- secure webhook signing
+- safe file upload parsing
+- safe external connector credentials
+- payment and subscription trust only from backend
+
+Never allow the frontend to be the source of truth for permissions or business logic.
+
+==================================================
+ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep the codebase modular and scalable.
+
+Suggested structure:
+- electron
+- frontend
+- backend
+- shared
+- modules
+- integrations
+- connectors
+- assets
+- scripts
+- docs
+
+Separate modules for:
+- auth
+- billing
+- companies
+- roles
+- approvals
+- invoices
+- inventory
+- accounting
+- expenses
+- purchases
+- vendors
+- receivables
+- payables
+- documents
+- ocr
+- ai
+- automation
+- analytics
+- notifications
+- audit
+- backup
+- sync
+- integrations
+- webhooks
+- import-export
+- custom-fields
+- deployment
+- branding
+- observability
+
+==================================================
+DEVELOPMENT PRIORITIES
+==================================================
+
+Build in this order:
+1. integration framework and secure credential storage
+2. webhook event bus and delivery system
+3. notification channel expansion
+4. import/export pipeline
+5. custom fields and configuration layer
+6. deployment profiles and branding settings
+7. observability and system health panels
+8. AI connector awareness
+9. API hardening and rate control
+10. UI expansion and setup wizards
+11. audit and trace improvements
+12. packaging and documentation readiness
+
+==================================================
+OUTPUT EXPECTATION
+==================================================
+
+Provide:
+- updated project structure
+- frontend code
+- backend code
+- database schema changes
+- integration framework implementation
+- webhook/event system
+- notification delivery system
+- import/export flow
+- custom fields system
+- deployment and branding configuration
+- observability and logs
+- AI enhancements for connector-aware behavior
+- setup and run instructions
+- migration notes from Version 3 to Version 4
+
+If the full implementation is too large in one response, split it into clean, logical modules while keeping architecture consistent.
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+Treat this like a serious commercial ERP platform with integrations and enterprise readiness.
+Preserve Version 3 stability.
+Extend carefully.
+Prioritize control, connectivity, trust, and usability.
+Version 4 should feel like a real business ecosystem platform, not just an app.

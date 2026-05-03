@@ -8,15 +8,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppLayout } from "@/components/layout/app-layout";
 import NotFound from "@/pages/not-found";
 
-// V3 pages
-import Analytics from "@/pages/analytics";
-import Expenses from "@/pages/expenses";
-import Vendors from "@/pages/vendors";
-import Team from "@/pages/team";
-import Approvals from "@/pages/approvals";
-import AuditLog from "@/pages/audit-log";
-import Workflows from "@/pages/workflows";
-
+// V1/V2 pages
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Onboarding from "@/pages/onboarding";
@@ -40,6 +32,23 @@ import ComplianceAlerts from "@/pages/compliance-alerts";
 import Billing from "@/pages/billing";
 import Backup from "@/pages/backup";
 import Devices from "@/pages/devices";
+
+// V3 pages
+import Analytics from "@/pages/analytics";
+import Expenses from "@/pages/expenses";
+import Vendors from "@/pages/vendors";
+import Team from "@/pages/team";
+import Approvals from "@/pages/approvals";
+import AuditLog from "@/pages/audit-log";
+import Workflows from "@/pages/workflows";
+
+// V4 pages
+import Integrations from "@/pages/integrations";
+import Webhooks from "@/pages/webhooks";
+import ImportExport from "@/pages/import-export";
+import CustomFields from "@/pages/custom-fields";
+import SystemHealth from "@/pages/system-health";
+import Branding from "@/pages/branding";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +86,13 @@ function AuthenticatedApp() {
           <Route path="/devices" component={Devices} />
           <Route path="/ai" component={AiAssistant} />
           <Route path="/settings" component={Settings} />
+          {/* V4 routes */}
+          <Route path="/integrations" component={Integrations} />
+          <Route path="/webhooks" component={Webhooks} />
+          <Route path="/import-export" component={ImportExport} />
+          <Route path="/custom-fields" component={CustomFields} />
+          <Route path="/system-health" component={SystemHealth} />
+          <Route path="/branding" component={Branding} />
           <Route component={NotFound} />
         </Switch>
       </AppLayout>
