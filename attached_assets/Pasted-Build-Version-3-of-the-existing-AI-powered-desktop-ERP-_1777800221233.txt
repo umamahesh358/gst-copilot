@@ -1,0 +1,533 @@
+Build Version 3 of the existing AI-powered desktop ERP application.
+
+==================================================
+VERSION 3 GOAL
+==================================================
+
+Version 3 is the "Intelligence, Automation, and Collaboration Release".
+
+The purpose of Version 3 is to upgrade the product beyond cloud backup and billing into a business operating system with:
+- advanced analytics
+- automation workflows
+- multi-company support
+- role-based team collaboration
+- OCR document ingestion
+- AI-powered decision support
+- approval flows
+- audit trails
+- business intelligence dashboards
+- smarter notifications and exceptions
+- integration-ready architecture
+
+The application should now feel like a serious business platform for SMEs, accountants, and growing teams.
+
+==================================================
+PRODUCT CONTEXT
+==================================================
+
+The product already includes:
+- desktop app shell
+- authentication
+- subscription and billing
+- plan enforcement
+- local SQLite data
+- cloud backup and restore
+- device binding
+- license validation
+- inventory
+- invoices
+- accounting basics
+- AI assistant
+- theme system
+- secure architecture
+
+Version 3 must extend those foundations with intelligent automation and collaboration.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Turn the app into a business intelligence and workflow platform that can:
+- read documents and extract data
+- generate reports and insights automatically
+- route tasks and approvals
+- handle multi-company business contexts
+- support team roles and permissions
+- analyze trends and anomalies
+- assist with daily accounting and operations
+- make the AI assistant more context-aware and action-oriented
+
+==================================================
+VERSION 3 FEATURE SCOPE
+==================================================
+
+Build the following in Version 3:
+
+1. ADVANCED AI ASSISTANT
+- Context-aware AI that understands the current company, module, and user intent
+- Multi-step command support
+- AI suggestions based on data trends
+- AI-generated explanations for dashboards and reports
+- Natural language queries across invoices, accounting, inventory, subscription, and backup
+- Safe action execution with confirmation for sensitive operations
+- Conversation history and AI action history
+- Follow-up question handling
+- Business recommendation engine
+
+Examples:
+- "Why did revenue drop this month?"
+- "Show products that may run out next week."
+- "Create a draft invoice for this customer."
+- "Summarize all unpaid bills and overdue payments."
+- "What are the top-selling items this quarter?"
+
+2. DOCUMENT INTELLIGENCE / OCR
+- Upload invoice PDFs, images, and scanned documents
+- Extract invoice fields automatically
+- Detect vendor, customer, date, tax, item lines, totals, and GST-related data
+- Auto-map extracted data into invoice and accounting records
+- Confidence scores for extracted fields
+- Manual review and correction flow
+- OCR error handling and preview screen
+
+3. ADVANCED ANALYTICS AND BI DASHBOARD
+- Revenue trend analysis
+- Profit/loss trend analysis
+- Customer payment behavior
+- Inventory movement analysis
+- GST summary charts
+- Month-over-month comparisons
+- Product performance ranking
+- Outstanding receivables and payables analysis
+- Drill-down dashboards with filters by time, company, category, customer, and product
+- AI-generated commentary on charts
+
+4. AUTOMATION WORKFLOWS
+- Scheduled reminders
+- Recurring invoices
+- Payment follow-up automation
+- Low-stock alert workflows
+- Due-date reminders
+- Backup scheduling automation
+- Auto-generated task suggestions
+- Rule-based triggers
+
+Examples:
+- When stock falls below threshold, notify user.
+- When invoice is overdue, remind customer and flag in dashboard.
+- When a report period ends, generate summary.
+
+5. TEAM COLLABORATION AND ROLES
+- Multi-user support within a company
+- User roles such as:
+  - owner
+  - admin
+  - accountant
+  - staff
+  - viewer
+- Permissions matrix
+- Approval-based actions for sensitive operations
+- Action logs by user
+- Assigned tasks and review queues
+- Activity feed
+
+6. MULTI-COMPANY SUPPORT
+- A single user can manage multiple businesses
+- Company switcher UI
+- Company-specific data separation
+- Separate invoices, inventory, accounting, settings, and reports per company
+- Company onboarding flow
+- Company profile settings
+- Business registration metadata
+
+7. APPROVAL WORKFLOWS
+- Draft vs approved states
+- Approval required for selected actions
+- Invoice approval flow
+- Payment confirmation flow
+- Data deletion approval flow
+- Purchase or expense approval flow
+- Commenting or notes during approval
+
+8. EXPENSES / PURCHASES / PAYABLES EXPANSION
+- Expense tracking
+- Purchase entry flow
+- Vendor management
+- Due payments
+- Payment scheduling
+- Expense categories
+- Profit impact calculations
+- Cash-flow visibility
+
+9. SMART NOTIFICATIONS
+- AI-powered alerts
+- Anomaly notifications
+- Cash flow warnings
+- Unusual expense detection
+- Revenue drop alerts
+- Overdue account alerts
+- Stock shortage predictions
+- Pending approval reminders
+
+10. DATA QUALITY AND AUDITABILITY
+- Full audit trail
+- Change history
+- Field-level update logs where appropriate
+- Revert or undo for safe actions where feasible
+- Validation and consistency checks
+- Duplicate detection for invoices/customers/vendors
+- Confidence score system for OCR and AI actions
+
+==================================================
+BUSINESS BEHAVIOR
+==================================================
+
+The system should be able to distinguish:
+- company context
+- module context
+- user role
+- permission level
+- subscription access
+- AI confidence
+- action sensitivity
+
+Rules:
+- Read-only analytical queries should be fast and safe.
+- Write actions should be permission-checked and confirmation-based.
+- Sensitive actions should require approval when policy demands it.
+- AI-generated drafts should never be auto-finalized without validation.
+- Company data must remain isolated.
+- Audit logs must capture who did what, when, and in which company.
+
+==================================================
+USER EXPERIENCE
+==================================================
+
+The UI must remain premium, minimal, and desktop-first.
+
+Add new screens for:
+- company switcher
+- team management
+- role/permission manager
+- approvals queue
+- OCR import review
+- analytics dashboard
+- AI insights panel
+- workflow automation settings
+- audit log viewer
+- expense and payables module
+- vendor management
+- recurring invoice setup
+
+Design requirements:
+- clean layout
+- minimal clutter
+- strong spacing
+- card-based information
+- crisp tables
+- smooth transitions
+- polished empty states
+- clear badges and status indicators
+- drill-down analytics with filters
+
+Theme requirements:
+- preserve dark mode
+- preserve light mode
+- keep theme persistence
+- keep UI consistent across all new modules
+
+==================================================
+DATABASE REQUIREMENTS
+==================================================
+
+Extend the data model for both local and cloud layers.
+
+Add or expand entities such as:
+- users
+- companies
+- company_members
+- roles
+- permissions
+- approval_requests
+- invoices
+- invoice_items
+- customers
+- vendors
+- products
+- inventory_movements
+- transactions
+- expenses
+- purchases
+- payables
+- receivables
+- recurring_tasks
+- automation_rules
+- document_uploads
+- ocr_extractions
+- ai_chat_sessions
+- ai_prompt_logs
+- analytics_snapshots
+- notifications
+- audit_logs
+- sync_history
+- subscriptions
+- plans
+- devices
+
+Requirements:
+- foreign keys
+- timestamps
+- status fields
+- soft delete where useful
+- indexes on search and filter fields
+- audit metadata
+- company scoping on business data
+- confidence score fields for OCR and AI extraction
+
+==================================================
+API REQUIREMENTS
+==================================================
+
+Create backend APIs for:
+
+Authentication and session:
+- login
+- signup
+- refresh
+- logout
+- validate session
+
+Company and team:
+- create company
+- switch company
+- list companies
+- invite user
+- manage members
+- assign roles
+- update permissions
+- remove member
+
+Invoices and accounting:
+- create draft invoice
+- approve invoice
+- list invoices
+- get invoice details
+- update invoice status
+- expense entry
+- purchase entry
+- vendor management
+- payables and receivables summaries
+
+OCR and documents:
+- upload document
+- extract invoice data
+- preview extracted results
+- confirm or edit extraction
+- save extracted document
+
+AI:
+- send prompt
+- return structured insights
+- context-aware query processing
+- AI action suggestion
+- AI action logging
+- confidence scoring
+- follow-up conversation support
+
+Automation:
+- create rule
+- list rules
+- update rule
+- disable rule
+- run scheduled jobs
+- notification triggers
+
+Analytics:
+- revenue summary
+- profit analysis
+- trend analysis
+- inventory performance
+- overdue analysis
+- drill-down datasets
+- export analytics data
+
+Audit and logs:
+- list audit logs
+- filter logs
+- fetch activity history
+
+Every API must have:
+- validation
+- authentication
+- permission checks
+- company context checks
+- error handling
+- audit logging
+- consistent response structure
+
+==================================================
+AI SYSTEM REQUIREMENTS
+==================================================
+
+The AI assistant must now behave like an intelligent business analyst and operator.
+
+It should:
+- understand company-specific data
+- summarize trends
+- explain anomalies
+- generate draft records
+- recommend actions
+- support conversation memory within a session
+- guide users through workflows
+- ask clarifying questions when needed
+- safely execute only allowed actions
+- create structured outputs for tables, charts, and draft forms
+
+The AI layer should support:
+- intent detection
+- entity extraction
+- workflow routing
+- tool/action calling
+- permission checking
+- confirmation prompts
+- audit logging
+- confidence scoring
+- fallback behavior when uncertain
+
+Examples:
+- "Create a draft purchase for 10 items from ABC Supplier."
+- "Why is profit lower this quarter?"
+- "Import this invoice PDF and save it."
+- "Show overdue receivables by customer."
+- "Prepare recurring invoice for next month."
+- "Which company has the highest stock turnover?"
+
+==================================================
+AUTOMATION REQUIREMENTS
+==================================================
+
+Create a workflow engine with:
+- triggers
+- conditions
+- actions
+- schedules
+- status tracking
+- execution history
+
+Example automation rules:
+- low stock → notify owner
+- invoice overdue → reminder email or in-app notification
+- payment received → update ledger and notify
+- month-end → generate analytics snapshot
+- OCR extraction complete → mark for review
+
+Automation should be editable through the UI, not hardcoded.
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+Maintain the strong security model from Version 2 and improve it:
+- JWT and refresh tokens
+- device validation
+- encrypted local sensitive data
+- server-side permission checks
+- audit logs
+- company isolation
+- secure file upload handling
+- safe OCR/document parsing
+- payment and subscription trust only from backend
+- role-based access control
+
+Never allow the frontend to be the source of truth for permissions or business logic.
+
+==================================================
+ARCHITECTURE REQUIREMENTS
+==================================================
+
+Keep the codebase modular and scalable.
+
+Suggested structure:
+- electron
+- frontend
+- backend
+- shared
+- modules
+- assets
+- scripts
+- docs
+
+Separate modules for:
+- auth
+- billing
+- companies
+- roles
+- approvals
+- invoices
+- inventory
+- accounting
+- expenses
+- purchases
+- vendors
+- receivables
+- payables
+- documents
+- ocr
+- ai
+- automation
+- analytics
+- notifications
+- audit
+- settings
+- backup
+- sync
+
+==================================================
+DEVELOPMENT PRIORITIES
+==================================================
+
+Build in this order:
+1. company and role model
+2. permissions and approvals
+3. document upload and OCR pipeline
+4. analytics data layer
+5. AI context engine
+6. automation workflow engine
+7. vendor, expense, purchase, and payable modules
+8. notifications and alerts
+9. audit log system
+10. UI expansion and drill-down views
+11. security hardening
+12. performance and packaging checks
+
+==================================================
+OUTPUT EXPECTATION
+==================================================
+
+Provide:
+- updated project structure
+- frontend code
+- backend code
+- database schema changes
+- OCR/document intelligence flow
+- AI intelligence layer
+- workflow automation engine
+- analytics dashboard implementation
+- team and company management logic
+- approval workflow logic
+- audit log system
+- UI components and screens
+- setup and run instructions
+- migration notes from Version 2 to Version 3
+
+If the full implementation is too large in one response, split it into clean, logical modules while keeping architecture consistent.
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+Treat this like a serious commercial ERP and business intelligence platform.
+Preserve Version 2 stability.
+Extend carefully.
+Prioritize trust, control, intelligence, and usability.
+Version 3 should feel like a real business operating system, not just an app.
