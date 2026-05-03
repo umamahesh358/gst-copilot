@@ -52,6 +52,7 @@ router.post("/products", requireAuth, async (req: AuthRequest, res) => {
     description: data.description,
     sku: data.sku,
     unit: data.unit || "pcs",
+    hsnCode: data.hsnCode,
     price: String(data.price),
     costPrice: String(data.costPrice || 0),
     gstRate: String(data.gstRate),
@@ -108,6 +109,7 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
   if (data.name !== undefined) updateData.name = data.name;
   if (data.description !== undefined) updateData.description = data.description;
   if (data.sku !== undefined) updateData.sku = data.sku;
+  if (data.hsnCode !== undefined) updateData.hsnCode = data.hsnCode;
   if (data.unit !== undefined) updateData.unit = data.unit;
   if (data.price !== undefined) updateData.price = String(data.price);
   if (data.costPrice !== undefined) updateData.costPrice = String(data.costPrice);

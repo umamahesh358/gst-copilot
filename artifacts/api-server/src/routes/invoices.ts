@@ -68,6 +68,7 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
     return {
       productId: item.productId,
       productName: item.productName,
+      hsnCode: item.hsnCode || null,
       quantity: item.quantity,
       unitPrice: String(item.unitPrice),
       gstRate: String(item.gstRate),
@@ -83,11 +84,19 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
     if (customer) customerName = customer.name;
   }
 
+  const finalInvoiceNumber = data.invoiceNumber || invoiceNumber;
+
   const [invoice] = await db.insert(invoicesTable).values({
-    invoiceNumber,
+    invoiceNumber: finalInvoiceNumber,
     customerId: data.customerId,
     customerName,
-    status: "unpaid",
+    type: data.type || "sale",
+    buyerGstin: data.buyerGstin || null,
+    buyerAddress: data.buyerAddress || null,
+    sellerName: data.sellerName || null,
+    sellerGstin: data.sellerGstin || null,
+    sellerAddress: data.sellerAddress || null,
+    status: "pending",
     subtotal: String(subtotal),
     gstAmount: String(gstAmount),
     totalAmount: String(totalAmount),

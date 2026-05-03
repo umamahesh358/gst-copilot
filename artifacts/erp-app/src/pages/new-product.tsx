@@ -19,6 +19,7 @@ type GstRate = typeof GST_RATES[number];
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   sku: z.string().optional(),
+  hsnCode: z.string().optional(),
   unit: z.string().min(1, "Unit is required"),
   price: z.coerce.number().min(0, "Price must be >= 0"),
   costPrice: z.coerce.number().min(0, "Cost price must be >= 0").optional(),
@@ -43,6 +44,7 @@ export default function NewProduct() {
     defaultValues: {
       name: "",
       sku: "",
+      hsnCode: "",
       unit: "pcs",
       price: 0,
       costPrice: 0,
@@ -59,6 +61,7 @@ export default function NewProduct() {
         data: {
           name: data.name,
           sku: data.sku || undefined,
+          hsnCode: data.hsnCode || undefined,
           unit: data.unit,
           price: data.price,
           costPrice: data.costPrice,
@@ -127,6 +130,19 @@ export default function NewProduct() {
                     <FormLabel>SKU / Code</FormLabel>
                     <FormControl>
                       <Input placeholder="PROD-001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="hsnCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>HSN Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. 8471" className="font-mono" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

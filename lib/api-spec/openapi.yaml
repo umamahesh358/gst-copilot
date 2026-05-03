@@ -1180,6 +1180,8 @@ components:
           type: string
         sku:
           type: string
+        hsnCode:
+          type: string
         unit:
           type: string
         price:
@@ -1230,6 +1232,8 @@ components:
           type: string
         sku:
           type: string
+        hsnCode:
+          type: string
         unit:
           type: string
         price:
@@ -1259,6 +1263,8 @@ components:
         description:
           type: string
         sku:
+          type: string
+        hsnCode:
           type: string
         unit:
           type: string
@@ -1358,6 +1364,8 @@ components:
           type: number
         total:
           type: number
+        hsnCode:
+          type: string
       required: [id, productName, quantity, unitPrice, gstRate, gstAmount, total]
 
     Invoice:
@@ -1371,9 +1379,22 @@ components:
           type: integer
         customerName:
           type: string
+        type:
+          type: string
+          enum: [sale, purchase]
+        buyerGstin:
+          type: string
+        buyerAddress:
+          type: string
+        sellerName:
+          type: string
+        sellerGstin:
+          type: string
+        sellerAddress:
+          type: string
         status:
           type: string
-          enum: [draft, paid, unpaid, overdue]
+          enum: [draft, paid, unpaid, overdue, pending, verified, flagged]
         subtotal:
           type: number
         gstAmount:
@@ -1433,6 +1454,8 @@ components:
           type: integer
         productName:
           type: string
+        hsnCode:
+          type: string
         quantity:
           type: integer
           minimum: 1
@@ -1448,6 +1471,21 @@ components:
         customerId:
           type: integer
         customerName:
+          type: string
+        invoiceNumber:
+          type: string
+        type:
+          type: string
+          enum: [sale, purchase]
+        buyerGstin:
+          type: string
+        buyerAddress:
+          type: string
+        sellerName:
+          type: string
+        sellerGstin:
+          type: string
+        sellerAddress:
           type: string
         dueDate:
           type: string
@@ -1466,7 +1504,7 @@ components:
       properties:
         status:
           type: string
-          enum: [draft, paid, unpaid, overdue]
+          enum: [draft, paid, unpaid, overdue, pending, verified, flagged]
       required: [status]
 
     # ACCOUNTING

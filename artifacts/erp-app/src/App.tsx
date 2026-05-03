@@ -15,6 +15,7 @@ import Dashboard from "@/pages/dashboard";
 import Invoices from "@/pages/invoices";
 import NewInvoice from "@/pages/new-invoice";
 import InvoiceDetail from "@/pages/invoice-detail";
+import InvoiceGenerator from "@/pages/invoice-generator";
 import Inventory from "@/pages/inventory";
 import NewProduct from "@/pages/new-product";
 import EditProduct from "@/pages/edit-product";
@@ -26,7 +27,7 @@ import Customers from "@/pages/customers";
 import Transactions from "@/pages/transactions";
 import GstReport from "@/pages/gst-report";
 import CreditDebit from "@/pages/credit-debit";
-import Alerts from "@/pages/alerts";
+import ComplianceAlerts from "@/pages/compliance-alerts";
 import Billing from "@/pages/billing";
 import Backup from "@/pages/backup";
 import Devices from "@/pages/devices";
@@ -39,6 +40,7 @@ function AuthenticatedApp() {
       <AppLayout>
         <Switch>
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/invoice-generator" component={InvoiceGenerator} />
           <Route path="/invoices/new" component={NewInvoice} />
           <Route path="/invoices/:id" component={InvoiceDetail} />
           <Route path="/invoices" component={Invoices} />
@@ -51,7 +53,7 @@ function AuthenticatedApp() {
           <Route path="/accounting/summary" component={AccountingSummary} />
           <Route path="/credit-debit" component={CreditDebit} />
           <Route path="/gst-report" component={GstReport} />
-          <Route path="/alerts" component={Alerts} />
+          <Route path="/alerts" component={ComplianceAlerts} />
           <Route path="/billing" component={Billing} />
           <Route path="/backup" component={Backup} />
           <Route path="/devices" component={Devices} />

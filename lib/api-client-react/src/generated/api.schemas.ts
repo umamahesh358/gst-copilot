@@ -110,6 +110,7 @@ export interface Product {
   name: string;
   description?: string;
   sku?: string;
+  hsnCode?: string;
   unit?: string;
   price: number;
   costPrice?: number;
@@ -145,6 +146,7 @@ export interface CreateProductBody {
   name: string;
   description?: string;
   sku?: string;
+  hsnCode?: string;
   unit?: string;
   /** @minimum 0 */
   price: number;
@@ -162,6 +164,7 @@ export interface UpdateProductBody {
   name?: string;
   description?: string;
   sku?: string;
+  hsnCode?: string;
   unit?: string;
   price?: number;
   costPrice?: number;
@@ -211,7 +214,15 @@ export interface InvoiceItem {
   gstRate: number;
   gstAmount: number;
   total: number;
+  hsnCode?: string;
 }
+
+export type InvoiceType = (typeof InvoiceType)[keyof typeof InvoiceType];
+
+export const InvoiceType = {
+  sale: "sale",
+  purchase: "purchase",
+} as const;
 
 export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
 
@@ -220,6 +231,9 @@ export const InvoiceStatus = {
   paid: "paid",
   unpaid: "unpaid",
   overdue: "overdue",
+  pending: "pending",
+  verified: "verified",
+  flagged: "flagged",
 } as const;
 
 export interface Invoice {
@@ -227,6 +241,12 @@ export interface Invoice {
   invoiceNumber: string;
   customerId?: number;
   customerName?: string;
+  type?: InvoiceType;
+  buyerGstin?: string;
+  buyerAddress?: string;
+  sellerName?: string;
+  sellerGstin?: string;
+  sellerAddress?: string;
   status: InvoiceStatus;
   subtotal: number;
   gstAmount: number;
@@ -254,15 +274,31 @@ export interface InvoicesListResponse {
 export interface CreateInvoiceItemBody {
   productId?: number;
   productName: string;
+  hsnCode?: string;
   /** @minimum 1 */
   quantity: number;
   unitPrice: number;
   gstRate: number;
 }
 
+export type CreateInvoiceBodyType =
+  (typeof CreateInvoiceBodyType)[keyof typeof CreateInvoiceBodyType];
+
+export const CreateInvoiceBodyType = {
+  sale: "sale",
+  purchase: "purchase",
+} as const;
+
 export interface CreateInvoiceBody {
   customerId?: number;
   customerName?: string;
+  invoiceNumber?: string;
+  type?: CreateInvoiceBodyType;
+  buyerGstin?: string;
+  buyerAddress?: string;
+  sellerName?: string;
+  sellerGstin?: string;
+  sellerAddress?: string;
   dueDate?: string;
   notes?: string;
   /** @minItems 1 */
@@ -277,6 +313,9 @@ export const UpdateInvoiceStatusBodyStatus = {
   paid: "paid",
   unpaid: "unpaid",
   overdue: "overdue",
+  pending: "pending",
+  verified: "verified",
+  flagged: "flagged",
 } as const;
 
 export interface UpdateInvoiceStatusBody {
