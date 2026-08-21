@@ -47,3 +47,14 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Environment variables (NEVER commit)
+.env
+.env.local
+.env.production
+
+# Local debugging helper scripts
+test-db.js
+check-user.js
+create-pro-user.js
+artifacts/api-server/create-pro-user.js

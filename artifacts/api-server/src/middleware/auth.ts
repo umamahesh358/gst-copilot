@@ -4,7 +4,10 @@ import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
-const JWT_SECRET = process.env.SESSION_SECRET || "bizos-secret-key";
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required. Set it to a random 64+ character string.");
+}
+const JWT_SECRET = process.env.SESSION_SECRET;
 
 export interface AuthRequest extends Request {
   userId?: number;
@@ -29,7 +32,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
 }
 
 export function generateToken(userId: number): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "24h" });
 }
 
 export async function loadUser(req: AuthRequest, res: Response, next: NextFunction) {

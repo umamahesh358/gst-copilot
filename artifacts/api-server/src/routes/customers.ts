@@ -13,17 +13,17 @@ router.get("/customers", requireAuth, async (req: AuthRequest, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
 
-  const conditions = [];
+  const conditions = [eq(customersTable.userId, req.userId!)];
   if (search) {
     conditions.push(ilike(customersTable.name, `%${search}%`));
   }
 
   const total = await db.select({ count: sql<number>`count(*)` })
     .from(customersTable)
-    .where(conditions.length ? and(...conditions) : undefined);
+    .where(and(...conditions));
 
   const customers = await db.select().from(customersTable)
-    .where(conditions.length ? and(...conditions) : undefined)
+    .where(and(...conditions))
     .orderBy(customersTable.createdAt)
     .limit(limit)
     .offset(offset);
@@ -58,9 +58,10 @@ router.post("/customers", requireAuth, async (req: AuthRequest, res) => {
     return;
   }
 
-  const [customer] = await db.insert(customersTable).values(result.data).returning();
+  const [customer] = await db.insert(customersTable).values({ ...result.data, userId: req.userId! }).returning();
 
   await db.insert(activityLogTable).values({
+    userId: req.userId!,
     type: "customer_added",
     title: "New customer added",
     description: `Customer "${customer.name}" was added`,
@@ -71,9 +72,10 @@ router.post("/customers", requireAuth, async (req: AuthRequest, res) => {
 
 router.put("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const { name, email, phone, gstNumber, address, city, state } = req.body;
 
-  const [existing] = await db.select().from(customersTable).where(eq(customersTable.id, id)).limit(1);
+  const [existing] = await db.select().from(customersTable).where(and(eq(customersTable.id, id), eq(customersTable.userId, req.userId!))).limit(1);
   if (!existing) { res.status(404).json({ error: "Not found", message: "Customer not found" }); return; }
 
   const [customer] = await db.update(customersTable).set({
@@ -85,9 +87,10 @@ router.put("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
     city: city ?? existing.city,
     state: state ?? existing.state,
     updatedAt: new Date(),
-  }).where(eq(customersTable.id, id)).returning();
+  }).where(and(eq(customersTable.id, id), eq(customersTable.userId, req.userId!))).returning();
 
   await db.insert(activityLogTable).values({
+    userId: req.userId!,
     type: "customer_updated",
     title: "Customer updated",
     description: `Customer "${customer.name}" was updated`,
@@ -98,12 +101,14 @@ router.put("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
 
 router.delete("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
-  const [existing] = await db.select().from(customersTable).where(eq(customersTable.id, id)).limit(1);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
+  const [existing] = await db.select().from(customersTable).where(and(eq(customersTable.id, id), eq(customersTable.userId, req.userId!))).limit(1);
   if (!existing) { res.status(404).json({ error: "Not found", message: "Customer not found" }); return; }
 
-  await db.delete(customersTable).where(eq(customersTable.id, id));
+  await db.delete(customersTable).where(and(eq(customersTable.id, id), eq(customersTable.userId, req.userId!)));
 
   await db.insert(activityLogTable).values({
+    userId: req.userId!,
     type: "customer_deleted",
     title: "Customer deleted",
     description: `Customer "${existing.name}" was removed`,
@@ -114,8 +119,9 @@ router.delete("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
 
 router.get("/customers/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const [customer] = await db.select().from(customersTable)
-    .where(eq(customersTable.id, id))
+    .where(and(eq(customersTable.id, id), eq(customersTable.userId, req.userId!)))
     .limit(1);
 
   if (!customer) {

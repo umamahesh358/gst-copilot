@@ -70,10 +70,10 @@ async function getSubscriptionContext(userId: number) {
 
 async function getBusinessContext(userId: number) {
   const [invoices, products, transactions, customers] = await Promise.all([
-    db.select().from(invoicesTable).orderBy(sql`${invoicesTable.createdAt} DESC`).limit(50),
-    db.select().from(productsTable).where(eq(productsTable.isDeleted, false)),
-    db.select().from(transactionsTable).orderBy(sql`${transactionsTable.date} DESC`).limit(50),
-    db.select().from(customersTable).limit(20),
+    db.select().from(invoicesTable).where(eq(invoicesTable.userId, userId)).orderBy(sql`${invoicesTable.createdAt} DESC`).limit(50),
+    db.select().from(productsTable).where(and(eq(productsTable.userId, userId), eq(productsTable.isDeleted, false))),
+    db.select().from(transactionsTable).where(eq(transactionsTable.userId, userId)).orderBy(sql`${transactionsTable.date} DESC`).limit(50),
+    db.select().from(customersTable).where(eq(customersTable.userId, userId)).limit(20),
   ]);
 
   const totalRevenue = invoices.filter(i => i.status === "paid").reduce((s, i) => s + parseFloat(i.totalAmount), 0);

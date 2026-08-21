@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { db } from "@workspace/db";
 import { usersTable, appSettingsTable } from "@workspace/db";
@@ -8,7 +8,34 @@ import { generateToken, requireAuth, type AuthRequest } from "../middleware/auth
 
 const router = Router();
 
-router.post("/auth/signup", async (req, res) => {
+// P0-1: Simple in-memory rate limiter for auth routes
+function createRateLimiter(windowMs: number, maxAttempts: number, errorMsg: string) {
+  const attempts = new Map<string, { count: number; resetAt: number }>();
+  return (req: Request, res: Response, next: NextFunction) => {
+    const key = req.ip || "unknown";
+    const now = Date.now();
+    const record = attempts.get(key);
+    if (record && now < record.resetAt) {
+      if (record.count >= maxAttempts) {
+        res.status(429).json({ error: "Too many requests", message: errorMsg });
+        return;
+      }
+      record.count++;
+    } else {
+      attempts.set(key, { count: 1, resetAt: now + windowMs });
+    }
+    // Cleanup old entries every 100 requests
+    if (attempts.size > 1000) {
+      for (const [k, v] of attempts) { if (now > v.resetAt) attempts.delete(k); }
+    }
+    next();
+  };
+}
+
+const loginLimiter = createRateLimiter(15 * 60 * 1000, 10, "Too many login attempts. Try again after 15 minutes.");
+const signupLimiter = createRateLimiter(60 * 60 * 1000, 5, "Too many signups. Try again later.");
+
+router.post("/auth/signup", signupLimiter, async (req, res) => {
   const result = SignupBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });
@@ -61,7 +88,7 @@ router.post("/auth/signup", async (req, res) => {
   });
 });
 
-router.post("/auth/login", async (req, res) => {
+router.post("/auth/login", loginLimiter, async (req, res) => {
   const result = LoginBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });

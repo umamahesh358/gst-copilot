@@ -65,13 +65,20 @@ router.post("/expenses", requireAuth, async (req: AuthRequest, res) => {
   const gstNum = parseFloat(gstAmount ?? "0");
   const totalNum = parseFloat(totalAmount ?? String(amtNum + gstNum));
 
+  // D4 fix: Use timestamp + userId for collision-resistant expense numbers
+  const now = new Date();
+  const y = now.getFullYear().toString().slice(-2);
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const seq = now.getTime().toString(36).slice(-5).toUpperCase();
+  const expenseNumber = `EXP-${y}${m}-${seq}`;
+
   const [expense] = await db
     .insert(expensesTable)
     .values({
       userId: req.userId!,
       vendorId: vendorId ?? null,
       vendorName: vendorName ?? null,
-      expenseNumber: generateExpenseNumber(),
+      expenseNumber,
       category: category ?? "general",
       description,
       amount: String(amtNum),

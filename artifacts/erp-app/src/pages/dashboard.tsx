@@ -33,11 +33,11 @@ export default function Dashboard() {
       iconBg: "bg-white/20",
     },
     {
-      label: "TOTAL PURCHASES",
-      value: summary?.totalExpenses || 0,
+      label: "UNPAID INVOICES",
+      value: summary?.pendingAmount || 0,
       isCurrency: true,
-      sub: "Total expenses this period",
-      subPositive: true,
+      sub: `${summary?.unpaidInvoicesCount || 0} invoices awaiting payment`,
+      subPositive: false,
       bg: "bg-white dark:bg-gray-900",
       text: "text-gray-900 dark:text-white",
       subText: "text-gray-500",
@@ -47,10 +47,23 @@ export default function Dashboard() {
       iconColor: "text-gray-500",
     },
     {
-      label: "GST PAYABLE",
-      value: summary?.pendingPayments || 0,
+      label: "NET GST PAYABLE",
+      value: summary?.netGstPayable || 0,
       isCurrency: true,
-      sub: `${summary?.unpaidInvoicesCount || 0} unpaid invoices`,
+      sub: (() => {
+        if (summary?.excessITC && summary.excessITC > 0) {
+          return `₹${Math.round(summary.excessITC).toLocaleString("en-IN")} ITC carry-forward`;
+        }
+        const split = summary?.gstSplit;
+        if (split && (split.cgst > 0 || split.igst > 0)) {
+          const parts = [];
+          if (split.cgst > 0) parts.push(`CGST ₹${Math.round(split.cgst).toLocaleString("en-IN")}`);
+          if (split.sgst > 0) parts.push(`SGST ₹${Math.round(split.sgst).toLocaleString("en-IN")}`);
+          if (split.igst > 0) parts.push(`IGST ₹${Math.round(split.igst).toLocaleString("en-IN")}`);
+          return parts.join(" + ");
+        }
+        return `Output GST minus eligible ITC`;
+      })(),
       subPositive: false,
       bg: "bg-amber-500",
       text: "text-white",
@@ -60,9 +73,11 @@ export default function Dashboard() {
     },
     {
       label: "INPUT TAX CREDIT",
-      value: (summary?.totalRevenue || 0) * 0.08,
+      value: summary?.inputGst || 0,
       isCurrency: true,
-      sub: "Estimated ITC available",
+      sub: summary?.eligiblePurchaseInvoices != null
+        ? `${summary.eligiblePurchaseInvoices} eligible${summary.ineligiblePurchaseInvoices ? ` · ${summary.ineligiblePurchaseInvoices} ineligible` : ''} purchase invoices`
+        : "From eligible purchase invoices with GSTIN",
       subPositive: true,
       bg: "bg-teal-600",
       text: "text-white",

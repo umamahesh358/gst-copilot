@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Printer, Save, FileText, Camera, Upload, X, Sparkles, CheckCircle2 } from "lucide-react";
+import { validateGstinField } from "@/lib/gstin";
 
 const lineItemSchema = z.object({
   productName: z.string().min(1, "Item name required"),
@@ -23,10 +24,16 @@ const formSchema = z.object({
   invoiceDate: z.string().min(1),
   type: z.enum(["sale", "purchase"]),
   sellerName: z.string().optional(),
-  sellerGstin: z.string().optional(),
+  sellerGstin: z.string().optional().refine(
+    (val) => !validateGstinField(val),
+    (val) => ({ message: validateGstinField(val) || "" })
+  ),
   sellerAddress: z.string().optional(),
   buyerName: z.string().min(1, "Buyer name required"),
-  buyerGstin: z.string().optional(),
+  buyerGstin: z.string().optional().refine(
+    (val) => !validateGstinField(val),
+    (val) => ({ message: validateGstinField(val) || "" })
+  ),
   buyerAddress: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(lineItemSchema).min(1, "At least 1 item required"),

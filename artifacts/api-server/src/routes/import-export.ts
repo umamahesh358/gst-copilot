@@ -120,25 +120,25 @@ router.post("/import-export/export", requireAuth, async (req: AuthRequest, res) 
   let rowCount = 0;
   try {
     if (module === "customers") {
-      const rows = await db.select().from(customersTable);
+      const rows = await db.select().from(customersTable).where(eq(customersTable.userId, req.userId!));
       rowCount = rows.length;
     } else if (module === "products") {
-      const rows = await db.select().from(productsTable).where(eq(productsTable.isDeleted, false));
+      const rows = await db.select().from(productsTable).where(and(eq(productsTable.userId, req.userId!), eq(productsTable.isDeleted, false)));
       rowCount = rows.length;
     } else if (module === "vendors") {
-      const rows = await db.select().from(vendorsTable).where(eq(vendorsTable.isDeleted, false));
+      const rows = await db.select().from(vendorsTable).where(and(eq(vendorsTable.userId, req.userId!), eq(vendorsTable.isDeleted, false)));
       rowCount = rows.length;
     } else if (module === "invoices") {
-      const conditions = [];
+      const conditions = [eq(invoicesTable.userId, req.userId!)];
       if (filters?.from) conditions.push(gte(invoicesTable.createdAt, new Date(filters.from)));
       if (filters?.to) conditions.push(lte(invoicesTable.createdAt, new Date(filters.to)));
-      const rows = conditions.length ? await db.select().from(invoicesTable).where(and(...conditions)) : await db.select().from(invoicesTable);
+      const rows = await db.select().from(invoicesTable).where(and(...conditions));
       rowCount = rows.length;
     } else if (module === "expenses") {
       const rows = await db.select().from(expensesTable).where(and(eq(expensesTable.userId, req.userId!), eq(expensesTable.isDeleted, false)));
       rowCount = rows.length;
     } else if (module === "transactions") {
-      const rows = await db.select().from(transactionsTable);
+      const rows = await db.select().from(transactionsTable).where(eq(transactionsTable.userId, req.userId!));
       rowCount = rows.length;
     }
   } catch (_) { rowCount = 0; }

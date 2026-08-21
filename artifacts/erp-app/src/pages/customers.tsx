@@ -16,12 +16,16 @@ import { useCreateCustomer, getListCustomersQueryKey } from "@workspace/api-clie
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { validateGstinField } from "@/lib/gstin";
 
 const customerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  gstNumber: z.string().optional(),
+  gstNumber: z.string().optional().refine(
+    (val) => !validateGstinField(val),
+    (val) => ({ message: validateGstinField(val) || "" })
+  ),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),

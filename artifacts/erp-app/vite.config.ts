@@ -58,6 +58,11 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
+  css: {
+    postcss: {
+      plugins: [],
+    },
+  },
   server: {
     port,
     strictPort: true,
@@ -65,6 +70,13 @@ export default defineConfig({
     allowedHosts: true,
     fs: {
       strict: true,
+    },
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   preview: {

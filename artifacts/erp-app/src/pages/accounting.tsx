@@ -49,7 +49,14 @@ export default function Accounting() {
   const totalRevenue = transactions.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
   const totalExpenses = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
-  const totalGstPayable = invoices.reduce((s, i) => s + Number(i.gstAmount || 0), 0) * 0.5;
+  // D3 fix: Proper GST payable = output GST (sales) - input ITC (purchases with GSTIN)
+  const saleInvoices = invoices.filter((i) => (i as any).type !== "purchase");
+  const purchaseInvoices = invoices.filter((i) => (i as any).type === "purchase");
+  const outputGst = saleInvoices.reduce((s, i) => s + Number(i.gstAmount || 0), 0);
+  const inputItc = purchaseInvoices
+    .filter((i) => (i as any).sellerGstin && (i as any).sellerGstin.trim().length === 15)
+    .reduce((s, i) => s + Number(i.gstAmount || 0), 0);
+  const totalGstPayable = Math.max(0, outputGst - inputItc);
 
   // Build ledger entries from transactions + invoices
   const ledgerEntries = (() => {
@@ -72,14 +79,7 @@ export default function Accounting() {
         credit: isIncome ? Number(inv.totalAmount) : 0,
         debit: isIncome ? 0 : Number(inv.totalAmount),
       });
-      entries.push({
-        date: inv.createdAt,
-        particulars: `Invoice from ${inv.customerName || "Unknown"}`,
-        reference: "–",
-        category: isIncome ? "sales" : "purchases",
-        credit: isIncome ? Number(inv.totalAmount) : 0,
-        debit: isIncome ? 0 : Number(inv.totalAmount),
-      });
+      // D2 fix: Removed duplicate entry that was inflating balances by 2x
     });
 
     transactions.forEach((txn) => {

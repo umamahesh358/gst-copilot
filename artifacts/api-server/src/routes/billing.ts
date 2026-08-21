@@ -120,6 +120,12 @@ router.post("/billing/checkout", requireAuth, async (req: AuthRequest, res) => {
     userAgent: req.headers["user-agent"],
   });
 
+  const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+  if (!razorpayKeyId) {
+    res.status(503).json({ error: "Payment not configured", message: "Razorpay payment gateway is not set up. Contact support." });
+    return;
+  }
+
   res.json({
     orderId: fakeOrderId,
     paymentId: payment.id,
@@ -127,7 +133,7 @@ router.post("/billing/checkout", requireAuth, async (req: AuthRequest, res) => {
     currency: "INR",
     plan: planId,
     planName: plan.name,
-    keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_placeholder",
+    keyId: razorpayKeyId,
     prefill: { name: "", email: "" },
   });
 });

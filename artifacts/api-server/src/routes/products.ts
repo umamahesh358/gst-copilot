@@ -14,7 +14,7 @@ router.get("/products", requireAuth, async (req: AuthRequest, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
 
-  let conditions = [eq(productsTable.isDeleted, false)];
+  let conditions = [eq(productsTable.userId, req.userId!), eq(productsTable.isDeleted, false)];
 
   if (search) {
     conditions.push(ilike(productsTable.name, `%${search}%`));
@@ -48,6 +48,7 @@ router.post("/products", requireAuth, async (req: AuthRequest, res) => {
 
   const data = result.data;
   const [product] = await db.insert(productsTable).values({
+    userId: req.userId!,
     name: data.name,
     description: data.description,
     sku: data.sku,
@@ -62,6 +63,7 @@ router.post("/products", requireAuth, async (req: AuthRequest, res) => {
   }).returning();
 
   await db.insert(activityLogTable).values({
+    userId: req.userId!,
     type: "product_added",
     title: "New product added",
     description: `Product "${product.name}" was added to inventory`,
@@ -78,8 +80,9 @@ router.post("/products", requireAuth, async (req: AuthRequest, res) => {
 
 router.get("/products/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const [product] = await db.select().from(productsTable)
-    .where(and(eq(productsTable.id, id), eq(productsTable.isDeleted, false)))
+    .where(and(eq(productsTable.id, id), eq(productsTable.userId, req.userId!), eq(productsTable.isDeleted, false)))
     .limit(1);
 
   if (!product) {
@@ -98,6 +101,7 @@ router.get("/products/:id", requireAuth, async (req: AuthRequest, res) => {
 
 router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const result = UpdateProductBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });
@@ -120,7 +124,7 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
 
   const [product] = await db.update(productsTable)
     .set(updateData as any)
-    .where(eq(productsTable.id, id))
+    .where(and(eq(productsTable.id, id), eq(productsTable.userId, req.userId!)))
     .returning();
 
   if (!product) {
@@ -131,6 +135,7 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
   const isLowStock = product.stockQty <= product.lowStockThreshold;
   if (isLowStock) {
     await db.insert(activityLogTable).values({
+      userId: req.userId!,
       type: "product_low_stock",
       title: "Low stock alert",
       description: `Product "${product.name}" is running low (${product.stockQty} remaining)`,
@@ -148,9 +153,10 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res) => {
 
 router.delete("/products/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const [product] = await db.update(productsTable)
     .set({ isDeleted: true, updatedAt: new Date() })
-    .where(eq(productsTable.id, id))
+    .where(and(eq(productsTable.id, id), eq(productsTable.userId, req.userId!)))
     .returning();
 
   if (!product) {

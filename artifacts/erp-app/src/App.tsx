@@ -40,8 +40,17 @@ import Expenses from "@/pages/expenses";
 import Vendors from "@/pages/vendors";
 import Team from "@/pages/team";
 import Approvals from "@/pages/approvals";
+import AuditLog from "@/pages/audit-log";
+import Workflows from "@/pages/workflows";
 
 // V4 pages
+import ImportExport from "@/pages/import-export";
+import CustomFields from "@/pages/custom-fields";
+import SystemHealth from "@/pages/system-health";
+import Integrations from "@/pages/integrations";
+import Webhooks from "@/pages/webhooks";
+import Branding from "@/pages/branding";
+import Notifications from "@/pages/notifications";
 
 // V5 pages
 import AiAgents from "@/pages/ai-agents";
@@ -49,6 +58,7 @@ import Reconciliation from "@/pages/reconciliation";
 import Policy from "@/pages/policy";
 import Tasks from "@/pages/tasks";
 import Enterprise from "@/pages/enterprise";
+import Addons from "@/pages/addons";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +82,7 @@ function AuthenticatedApp() {
           <Route path="/credit-debit" component={CreditDebit} />
           <Route path="/gst-report" component={GstReport} />
           <Route path="/alerts" component={ComplianceAlerts} />
+          <Route path="/notifications" component={Notifications} />
           {/* V3 routes */}
           <Route path="/analytics" component={Analytics} />
           <Route path="/expenses" component={Expenses} />
@@ -82,18 +93,35 @@ function AuthenticatedApp() {
           <Route path="/approvals">
             <ProGate feature="Approvals"><Approvals /></ProGate>
           </Route>
-          {/* AI command centre with tab routing */}
+          <Route path="/audit-log">
+            <ProGate feature="Audit Log"><AuditLog /></ProGate>
+          </Route>
+          <Route path="/workflows">
+            <ProGate feature="Workflows"><Workflows /></ProGate>
+          </Route>
+          {/* AI command centre */}
           <Route path="/ai" component={AiAssistant} />
-          <Route path="/workflows">{() => { window.location.replace("/erp-app/ai?tab=automations"); return null; }}</Route>
-          <Route path="/integrations">{() => { window.location.replace("/erp-app/ai?tab=integrations"); return null; }}</Route>
-          <Route path="/webhooks">{() => { window.location.replace("/erp-app/ai?tab=webhooks"); return null; }}</Route>
+          {/* V4 routes */}
+          <Route path="/integrations">
+            <ProGate feature="Integrations"><Integrations /></ProGate>
+          </Route>
+          <Route path="/webhooks">
+            <ProGate feature="Webhooks"><Webhooks /></ProGate>
+          </Route>
+          <Route path="/import-export">
+            <ProGate feature="Import & Export"><ImportExport /></ProGate>
+          </Route>
+          <Route path="/custom-fields">
+            <ProGate feature="Custom Fields"><CustomFields /></ProGate>
+          </Route>
+          <Route path="/system-health">
+            <ProGate feature="System Health"><SystemHealth /></ProGate>
+          </Route>
           {/* Cloud / account */}
           <Route path="/billing" component={Billing} />
           <Route path="/backup" component={Backup} />
           <Route path="/settings" component={Settings} />
-          <Route path="/branding">
-            {() => { window.location.replace("/settings"); return null; }}
-          </Route>
+          <Route path="/branding" component={Branding} />
           {/* V5 routes — Pro only */}
           <Route path="/ai-agents">
             <ProGate feature="AI Agent Workspace"><AiAgents /></ProGate>
@@ -107,6 +135,9 @@ function AuthenticatedApp() {
           <Route path="/tasks" component={Tasks} />
           <Route path="/enterprise">
             <ProGate feature="Enterprise Admin"><Enterprise /></ProGate>
+          </Route>
+          <Route path="/addons">
+            <ProGate feature="Add-ons Marketplace"><Addons /></ProGate>
           </Route>
           <Route component={NotFound} />
         </Switch>

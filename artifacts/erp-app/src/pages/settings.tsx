@@ -16,12 +16,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2, Save, Monitor, Cloud, Server, Palette, Globe, Building2, Crown, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { validateGstinField } from "@/lib/gstin";
 import { useTheme } from "next-themes";
 import { useLocation } from "wouter";
 
 const settingsSchema = z.object({
   businessName: z.string().min(1, "Business name required"),
-  gstNumber: z.string().optional(),
+  gstNumber: z.string().optional().refine(
+    (val) => !validateGstinField(val),
+    (val) => ({ message: validateGstinField(val) || "" })
+  ),
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),

@@ -24,15 +24,14 @@ router.get("/invoices", requireAuth, async (req: AuthRequest, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
 
-  let query = db.select().from(invoicesTable);
-  const conditions = [];
+  const conditions = [eq(invoicesTable.userId, req.userId!)];
 
   if (search) conditions.push(ilike(invoicesTable.invoiceNumber, `%${search}%`));
   if (status) conditions.push(eq(invoicesTable.status, status));
   if (customerId) conditions.push(eq(invoicesTable.customerId, customerId));
 
   const allInvoices = await db.select().from(invoicesTable)
-    .where(conditions.length ? and(...conditions) : undefined)
+    .where(and(...conditions))
     .orderBy(sql`${invoicesTable.createdAt} DESC`);
 
   const total = allInvoices.length;
@@ -54,15 +53,33 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
   }
   const data = result.data;
 
-  const [count] = await db.select({ count: sql<number>`count(*)` }).from(invoicesTable);
-  const nextNum = (Number(count.count) + 1).toString().padStart(4, "0");
+  // Server-side GSTIN format validation (15-char Indian GSTIN)
+  const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+  if (data.sellerGstin && !GSTIN_REGEX.test(data.sellerGstin.trim().toUpperCase())) {
+    res.status(400).json({ error: "Validation error", message: "Invalid seller GSTIN format (must be 15-char e.g. 22AAAAA0000A1Z5)" });
+    return;
+  }
+  if (data.buyerGstin && !GSTIN_REGEX.test(data.buyerGstin.trim().toUpperCase())) {
+    res.status(400).json({ error: "Validation error", message: "Invalid buyer GSTIN format (must be 15-char e.g. 22AAAAA0000A1Z5)" });
+    return;
+  }
+
+  // E4: Guard against empty items array (Drizzle crashes on insert of 0 rows)
+  if (!data.items || data.items.length === 0) {
+    res.status(400).json({ error: "Validation error", message: "Invoice must have at least one item" });
+    return;
+  }
+
+  // BUG-04 fix: Use MAX(id) + 1 inside a single query to avoid race conditions
+  const [maxResult] = await db.select({ maxId: sql<number>`COALESCE(MAX(id), 0)` }).from(invoicesTable);
+  const nextNum = (Number(maxResult.maxId) + 1).toString().padStart(4, "0");
   const invoiceNumber = `INV-${nextNum}`;
 
   let subtotal = 0;
   let gstAmount = 0;
   const itemsData = data.items.map(item => {
     const itemTotal = item.quantity * item.unitPrice;
-    const itemGst = itemTotal * (item.gstRate / 100);
+    const itemGst = Math.round(itemTotal * (item.gstRate / 100) * 100) / 100;
     subtotal += itemTotal;
     gstAmount += itemGst;
     return {
@@ -73,10 +90,25 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
       unitPrice: String(item.unitPrice),
       gstRate: String(item.gstRate),
       gstAmount: String(itemGst),
-      total: String(itemTotal + itemGst),
+      total: String(Math.round((itemTotal + itemGst) * 100) / 100),
     };
   });
-  const totalAmount = subtotal + gstAmount;
+  const totalAmount = Math.round((subtotal + gstAmount) * 100) / 100;
+
+  // D1 fix: Validate stock BEFORE creating invoice to prevent orphaned records
+  const invoiceType = data.type || "sale";
+  if (invoiceType !== "purchase") {
+    for (const item of data.items) {
+      if (item.productId) {
+        const [product] = await db.select().from(productsTable)
+          .where(and(eq(productsTable.id, item.productId), eq(productsTable.isDeleted, false)));
+        if (product && product.stockQty < item.quantity) {
+          res.status(400).json({ error: "Insufficient stock", message: `${product.name} has only ${product.stockQty} units (requested ${item.quantity})` });
+          return;
+        }
+      }
+    }
+  }
 
   let customerName = data.customerName || "";
   if (data.customerId) {
@@ -87,6 +119,7 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
   const finalInvoiceNumber = data.invoiceNumber || invoiceNumber;
 
   const [invoice] = await db.insert(invoicesTable).values({
+    userId: req.userId!,
     invoiceNumber: finalInvoiceNumber,
     customerId: data.customerId,
     customerName,
@@ -108,27 +141,36 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
     itemsData.map(item => ({ ...item, invoiceId: invoice.id }))
   ).returning();
 
+  // Now safely update stock (validation already passed above)
   for (const item of data.items) {
     if (item.productId) {
-      await db.update(productsTable)
-        .set({ stockQty: sql`${productsTable.stockQty} - ${item.quantity}`, updatedAt: new Date() })
-        .where(and(eq(productsTable.id, item.productId), eq(productsTable.isDeleted, false)));
+      if (invoiceType === "purchase") {
+        await db.update(productsTable)
+          .set({ stockQty: sql`${productsTable.stockQty} + ${item.quantity}`, updatedAt: new Date() })
+          .where(and(eq(productsTable.id, item.productId), eq(productsTable.isDeleted, false)));
+      } else {
+        await db.update(productsTable)
+          .set({ stockQty: sql`${productsTable.stockQty} - ${item.quantity}`, updatedAt: new Date() })
+          .where(and(eq(productsTable.id, item.productId), eq(productsTable.isDeleted, false)));
+      }
     }
   }
 
   await db.insert(transactionsTable).values({
-    type: "income",
+    userId: req.userId!,
+    type: invoiceType === "purchase" ? "expense" : "income",
     category: "Invoice",
-    description: `Invoice ${invoiceNumber} - ${customerName}`,
+    description: `Invoice ${finalInvoiceNumber} - ${customerName}`,
     amount: String(totalAmount),
     date: new Date().toISOString().split("T")[0],
     invoiceId: invoice.id,
   });
 
   await db.insert(activityLogTable).values({
+    userId: req.userId!,
     type: "invoice_created",
     title: "New invoice created",
-    description: `Invoice ${invoiceNumber} for ${customerName}`,
+    description: `Invoice ${finalInvoiceNumber} for ${customerName}`,
     amount: String(totalAmount),
   });
 
@@ -145,7 +187,8 @@ router.post("/invoices", requireAuth, async (req: AuthRequest, res) => {
 
 router.get("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
-  const [invoice] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id)).limit(1);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "Invoice ID must be a number" }); return; }
+  const [invoice] = await db.select().from(invoicesTable).where(and(eq(invoicesTable.id, id), eq(invoicesTable.userId, req.userId!))).limit(1);
   if (!invoice) {
     res.status(404).json({ error: "Not found", message: "Invoice not found" });
     return;
@@ -165,6 +208,7 @@ router.get("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
 
 router.patch("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "Invoice ID must be a number" }); return; }
   const result = UpdateInvoiceStatusBody.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ error: "Validation error", message: result.error.message });
@@ -180,7 +224,7 @@ router.patch("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
   }
 
   const [invoice] = await db.update(invoicesTable).set(updateData as any)
-    .where(eq(invoicesTable.id, id))
+    .where(and(eq(invoicesTable.id, id), eq(invoicesTable.userId, req.userId!)))
     .returning();
 
   if (!invoice) {
@@ -190,6 +234,7 @@ router.patch("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
 
   if (result.data.status === "paid") {
     await db.insert(activityLogTable).values({
+      userId: req.userId!,
       type: "invoice_paid",
       title: "Invoice paid",
       description: `Invoice ${invoice.invoiceNumber} marked as paid`,
@@ -207,6 +252,69 @@ router.patch("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
   }));
 
   res.json({ ...formatInvoice(invoice), items: formattedItems });
+});
+
+// P1-1: Soft-delete invoice (cancel) — reverses stock and voids transaction
+router.delete("/invoices/:id", requireAuth, async (req: AuthRequest, res) => {
+  const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "Invoice ID must be a number" }); return; }
+
+  const [invoice] = await db.select().from(invoicesTable)
+    .where(and(eq(invoicesTable.id, id), eq(invoicesTable.userId, req.userId!)))
+    .limit(1);
+
+  if (!invoice) {
+    res.status(404).json({ error: "Not found", message: "Invoice not found" });
+    return;
+  }
+
+  if (invoice.status === "paid") {
+    res.status(400).json({ error: "Cannot delete", message: "Paid invoices cannot be deleted. Create a credit note instead." });
+    return;
+  }
+
+  if (invoice.status === "cancelled") {
+    res.status(400).json({ error: "Already cancelled", message: "This invoice is already cancelled." });
+    return;
+  }
+
+  // Reverse stock adjustments
+  const items = await db.select().from(invoiceItemsTable).where(eq(invoiceItemsTable.invoiceId, id));
+  for (const item of items) {
+    if (item.productId) {
+      if (invoice.type === "purchase") {
+        // Reverse purchase: decrease stock
+        await db.update(productsTable)
+          .set({ stockQty: sql`GREATEST(0, ${productsTable.stockQty} - ${item.quantity})`, updatedAt: new Date() })
+          .where(and(eq(productsTable.id, item.productId), eq(productsTable.isDeleted, false)));
+      } else {
+        // Reverse sale: restore stock
+        await db.update(productsTable)
+          .set({ stockQty: sql`${productsTable.stockQty} + ${item.quantity}`, updatedAt: new Date() })
+          .where(and(eq(productsTable.id, item.productId), eq(productsTable.isDeleted, false)));
+      }
+    }
+  }
+
+  // Void the associated transaction
+  await db.delete(transactionsTable)
+    .where(and(eq(transactionsTable.invoiceId, id), eq(transactionsTable.userId, req.userId!)));
+
+  // Soft-delete the invoice
+  const [cancelled] = await db.update(invoicesTable)
+    .set({ status: "cancelled", updatedAt: new Date() })
+    .where(eq(invoicesTable.id, id))
+    .returning();
+
+  await db.insert(activityLogTable).values({
+    userId: req.userId!,
+    type: "invoice_cancelled",
+    title: "Invoice cancelled",
+    description: `Invoice ${invoice.invoiceNumber} cancelled and stock reversed`,
+    amount: invoice.totalAmount,
+  });
+
+  res.json({ ...formatInvoice(cancelled), message: "Invoice cancelled and stock reversed" });
 });
 
 export default router;

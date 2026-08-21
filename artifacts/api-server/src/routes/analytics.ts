@@ -24,7 +24,7 @@ router.get("/analytics/revenue", requireAuth, async (req: AuthRequest, res) => {
       count: count(invoicesTable.id),
     })
     .from(invoicesTable)
-    .where(gte(invoicesTable.createdAt, since))
+    .where(and(eq(invoicesTable.userId, req.userId!), gte(invoicesTable.createdAt, since)))
     .groupBy(sql`to_char(${invoicesTable.createdAt}, 'YYYY-MM')`)
     .orderBy(sql`to_char(${invoicesTable.createdAt}, 'YYYY-MM')`);
 
@@ -69,13 +69,14 @@ router.get("/analytics/summary", requireAuth, async (req: AuthRequest, res) => {
   const [currentRevenue] = await db
     .select({ total: sum(invoicesTable.totalAmount), cnt: count() })
     .from(invoicesTable)
-    .where(gte(invoicesTable.createdAt, startOfMonth));
+    .where(and(eq(invoicesTable.userId, req.userId!), gte(invoicesTable.createdAt, startOfMonth)));
 
   const [prevRevenue] = await db
     .select({ total: sum(invoicesTable.totalAmount) })
     .from(invoicesTable)
     .where(
       and(
+        eq(invoicesTable.userId, req.userId!),
         gte(invoicesTable.createdAt, startOfPrevMonth),
         lte(invoicesTable.createdAt, endOfPrevMonth)
       )
@@ -95,7 +96,7 @@ router.get("/analytics/summary", requireAuth, async (req: AuthRequest, res) => {
   const [pendingInvoices] = await db
     .select({ cnt: count(), total: sum(invoicesTable.totalAmount) })
     .from(invoicesTable)
-    .where(eq(invoicesTable.status, "pending"));
+    .where(and(eq(invoicesTable.userId, req.userId!), eq(invoicesTable.status, "pending")));
 
   const currentRev = parseFloat(currentRevenue?.total ?? "0");
   const prevRev = parseFloat(prevRevenue?.total ?? "0");
@@ -114,7 +115,7 @@ router.get("/analytics/summary", requireAuth, async (req: AuthRequest, res) => {
   });
 });
 
-router.get("/analytics/top-products", requireAuth, async (_req, res) => {
+router.get("/analytics/top-products", requireAuth, async (req: AuthRequest, res) => {
   const rows = await db
     .select({
       productName: invoiceItemsTable.productName,
@@ -123,6 +124,8 @@ router.get("/analytics/top-products", requireAuth, async (_req, res) => {
       orderCount: count(invoiceItemsTable.id),
     })
     .from(invoiceItemsTable)
+    .innerJoin(invoicesTable, eq(invoiceItemsTable.invoiceId, invoicesTable.id))
+    .where(eq(invoicesTable.userId, req.userId!))
     .groupBy(invoiceItemsTable.productName)
     .orderBy(desc(sum(invoiceItemsTable.total)))
     .limit(10);
@@ -137,12 +140,13 @@ router.get("/analytics/top-products", requireAuth, async (_req, res) => {
   });
 });
 
-router.get("/analytics/low-stock", requireAuth, async (_req, res) => {
+router.get("/analytics/low-stock", requireAuth, async (req: AuthRequest, res) => {
   const products = await db
     .select()
     .from(productsTable)
     .where(
       and(
+        eq(productsTable.userId, req.userId!),
         eq(productsTable.isDeleted, false),
         sql`${productsTable.stockQty} <= ${productsTable.lowStockThreshold}`
       )
@@ -166,9 +170,10 @@ router.get("/analytics/gst-summary", requireAuth, async (req: AuthRequest, res) 
       invoiceCount: count(invoicesTable.id),
     })
     .from(invoicesTable)
-    .where(gte(invoicesTable.createdAt, since))
+    .where(and(eq(invoicesTable.userId, req.userId!), gte(invoicesTable.createdAt, since)))
     .groupBy(sql`to_char(${invoicesTable.createdAt}, 'YYYY-MM')`)
     .orderBy(sql`to_char(${invoicesTable.createdAt}, 'YYYY-MM')`);
+
 
   res.json({
     data: rows.map((r) => ({

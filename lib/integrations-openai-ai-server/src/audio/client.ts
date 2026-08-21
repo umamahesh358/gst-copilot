@@ -6,21 +6,24 @@ import { randomUUID } from "crypto";
 import { tmpdir } from "os";
 import { join } from "path";
 
-if (!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL) {
-  throw new Error(
-    "AI_INTEGRATIONS_OPENAI_BASE_URL must be set. Did you forget to provision the OpenAI AI integration?",
-  );
-}
+const apiKey =
+  process.env.AI_INTEGRATIONS_OPENAI_API_KEY ||
+  process.env.OPENAI_API_KEY;
 
-if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+const baseURL =
+  process.env.AI_INTEGRATIONS_OPENAI_BASE_URL ||
+  process.env.OPENAI_BASE_URL ||
+  "https://api.openai.com/v1";
+
+if (!apiKey) {
   throw new Error(
-    "AI_INTEGRATIONS_OPENAI_API_KEY must be set. Did you forget to provision the OpenAI AI integration?",
+    "No OpenAI API key found. Please set AI_INTEGRATIONS_OPENAI_API_KEY or OPENAI_API_KEY.",
   );
 }
 
 export const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey,
+  baseURL,
 });
 
 export type AudioFormat = "wav" | "mp3" | "webm" | "mp4" | "ogg" | "unknown";
@@ -80,7 +83,7 @@ export async function convertToWav(audioBuffer: Buffer): Promise<Buffer> {
         outputPath,
       ]);
 
-      ffmpeg.stderr.on("data", () => {});
+      ffmpeg.stderr.on("data", () => { });
       ffmpeg.on("close", (code) => {
         if (code === 0) resolve();
         else reject(new Error(`ffmpeg exited with code ${code}`));
@@ -90,8 +93,8 @@ export async function convertToWav(audioBuffer: Buffer): Promise<Buffer> {
 
     return await readFile(outputPath);
   } finally {
-    await unlink(inputPath).catch(() => {});
-    await unlink(outputPath).catch(() => {});
+    await unlink(inputPath).catch(() => { });
+    await unlink(outputPath).catch(() => { });
   }
 }
 

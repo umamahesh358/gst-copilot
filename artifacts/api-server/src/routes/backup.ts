@@ -21,10 +21,10 @@ const MAX_BACKUPS_PRO = 30;
 
 async function collectUserData(userId: number) {
   const [products, customers, invoices, transactions] = await Promise.all([
-    db.select().from(productsTable).where(and(eq(productsTable.isDeleted, false))),
-    db.select().from(customersTable),
-    db.select().from(invoicesTable),
-    db.select().from(transactionsTable),
+    db.select().from(productsTable).where(and(eq(productsTable.userId, userId), eq(productsTable.isDeleted, false))),
+    db.select().from(customersTable).where(eq(customersTable.userId, userId)),
+    db.select().from(invoicesTable).where(eq(invoicesTable.userId, userId)),
+    db.select().from(transactionsTable).where(eq(transactionsTable.userId, userId)),
   ]);
 
   return {

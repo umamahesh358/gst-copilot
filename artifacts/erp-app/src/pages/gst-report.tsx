@@ -1,5 +1,7 @@
 import { useListInvoices, useListTransactions } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
+import { isSameState, splitGstComponents } from "@/lib/gstin";
+import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, BarChart3, Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,10 +58,23 @@ export default function GstReport() {
   const purchaseTxns = (txnData?.transactions || []).filter((t) => t.type === "expense");
 
   const taxableSales = saleInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0);
-  const taxablePurchases = purchaseInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0) +
-    purchaseTxns.reduce((s, t) => s + Number(t.amount), 0) * 0.847; // approx ex-tax
+
+  // Taxable purchases: direct sum from purchase-type invoices only.
+  // We do NOT mix in expense transactions here — those are separate from GST invoices.
+  const taxablePurchases = purchaseInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0);
+
   const outputGst = saleInvoices.reduce((s, i) => s + Number(i.gstAmount || 0), 0);
-  const inputTaxCredit = purchaseInvoices.reduce((s, i) => s + Number(i.gstAmount || 0), 0) * 0.5;
+
+  // Input Tax Credit: only from purchase invoices with a recorded seller GSTIN.
+  // Without a GSTIN, ITC cannot legally be claimed under GST law.
+  // Note: Full GSTR-2A/2B reconciliation (V5) will refine this further.
+  const inputTaxCredit = purchaseInvoices
+    .filter(i => {
+      const gstin = (i as any).sellerGstin as string | null | undefined;
+      return gstin && gstin.trim().length === 15;
+    })
+    .reduce((s, i) => s + Number(i.gstAmount || 0), 0);
+
   const netGstPayable = Math.max(0, outputGst - inputTaxCredit);
   const excessItc = Math.max(0, inputTaxCredit - outputGst);
 
@@ -70,11 +85,15 @@ export default function GstReport() {
       return getFYMonthIndex(d) === idx;
     });
     const output = monthInvs.filter((i) => (i as any).type !== "purchase").reduce((s, i) => s + Number(i.gstAmount || 0), 0);
-    const input = monthInvs.filter((i) => (i as any).type === "purchase").reduce((s, i) => s + Number(i.gstAmount || 0), 0) * 0.5;
+    // ITC: only from purchase invoices with a valid seller GSTIN
+    const input = monthInvs
+      .filter((i) => (i as any).type === "purchase" && (i as any).sellerGstin && (i as any).sellerGstin.trim().length === 15)
+      .reduce((s, i) => s + Number(i.gstAmount || 0), 0);
     return { month, "Output GST": Math.round(output), "Input GST (ITC)": Math.round(input) };
   });
 
   // Rate breakdown
+  // Rate breakdown with proper CGST/SGST/IGST split based on seller/buyer state
   const rateBreakdown = GST_RATES.map((rate) => {
     const invs = saleInvoices.filter((i) => {
       const sub = Number(i.subtotal || 0);
@@ -85,42 +104,67 @@ export default function GstReport() {
     });
     const taxable = invs.reduce((s, i) => s + Number(i.subtotal || 0), 0);
     const gstAmt = invs.reduce((s, i) => s + Number(i.gstAmount || 0), 0);
-    return { rate: `${rate}%`, taxable, gstAmt, cgst: gstAmt / 2, sgst: gstAmt / 2, count: invs.length };
+    // Split into CGST/SGST (intra-state) or IGST (inter-state)
+    let cgst = 0, sgst = 0, igst = 0;
+    invs.forEach((i) => {
+      const split = splitGstComponents(Number(i.gstAmount || 0), (i as any).sellerGstin, (i as any).buyerGstin);
+      cgst += split.cgst;
+      sgst += split.sgst;
+      igst += split.igst;
+    });
+    return { rate: `${rate}%`, taxable, gstAmt, cgst, sgst, igst, count: invs.length };
   }).filter((r) => r.count > 0);
 
   if (rateBreakdown.length === 0) {
-    rateBreakdown.push({ rate: "18%", taxable: taxableSales, gstAmt: outputGst, cgst: outputGst / 2, sgst: outputGst / 2, count: saleInvoices.length });
+    const fallbackSplit = splitGstComponents(outputGst, null, null);
+    rateBreakdown.push({ rate: "18%", taxable: taxableSales, gstAmt: outputGst, cgst: fallbackSplit.cgst, sgst: fallbackSplit.sgst, igst: fallbackSplit.igst, count: saleInvoices.length });
   }
 
-  // GSTR-1 entries
-  const gstr1Entries = saleInvoices.map((inv) => ({
-    date: new Date(inv.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-    vendor: inv.customerName,
-    gstin: (inv as any).buyerGstin || "–",
-    invoiceNo: inv.invoiceNumber,
-    taxable: Number(inv.subtotal || 0),
-    gstRate: (() => {
-      const s = Number(inv.subtotal || 0);
-      const g = Number(inv.gstAmount || 0);
-      return s ? Math.round((g / s) * 100) + "%" : "18%";
-    })(),
-    cgst: Number(inv.gstAmount || 0) / 2,
-    sgst: Number(inv.gstAmount || 0) / 2,
-    total: Number(inv.totalAmount || 0),
-  }));
+  // GSTR-1 entries with proper CGST/SGST/IGST split
+  const gstr1Entries = saleInvoices.map((inv) => {
+    const gstAmt = Number(inv.gstAmount || 0);
+    const split = splitGstComponents(gstAmt, (inv as any).sellerGstin, (inv as any).buyerGstin);
+    return {
+      date: new Date(inv.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+      vendor: inv.customerName,
+      gstin: (inv as any).buyerGstin || "–",
+      invoiceNo: inv.invoiceNumber,
+      taxable: Number(inv.subtotal || 0),
+      gstRate: (() => {
+        const s = Number(inv.subtotal || 0);
+        return s ? Math.round((gstAmt / s) * 100) + "%" : "18%";
+      })(),
+      cgst: split.cgst,
+      sgst: split.sgst,
+      igst: split.igst,
+      total: Number(inv.totalAmount || 0),
+    };
+  });
 
-  // GSTR-2 entries
-  const gstr2Entries = purchaseInvoices.map((inv) => ({
-    date: new Date(inv.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-    vendor: inv.customerName,
-    gstin: (inv as any).buyerGstin || "–",
-    invoiceNo: inv.invoiceNumber,
-    taxable: Number(inv.subtotal || 0),
-    gstRate: "18%",
-    cgst: Number(inv.gstAmount || 0) / 2,
-    sgst: Number(inv.gstAmount || 0) / 2,
-    itc: Number(inv.gstAmount || 0) * 0.5,
-  }));
+  // GSTR-2 entries with proper ITC eligibility and CGST/SGST/IGST split
+  const gstr2Entries = purchaseInvoices.map((inv) => {
+    const gstAmt = Number(inv.gstAmount || 0);
+    const sellerGstin = (inv as any).sellerGstin as string | null | undefined;
+    const split = splitGstComponents(gstAmt, sellerGstin, (inv as any).buyerGstin);
+    // ITC is eligible only if seller GSTIN is valid (15-char)
+    const isEligible = sellerGstin && sellerGstin.trim().length === 15;
+    return {
+      date: new Date(inv.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+      vendor: inv.customerName,
+      gstin: sellerGstin || "–",
+      invoiceNo: inv.invoiceNumber,
+      taxable: Number(inv.subtotal || 0),
+      gstRate: (() => {
+        const s = Number(inv.subtotal || 0);
+        return s ? Math.round((gstAmt / s) * 100) + "%" : "18%";
+      })(),
+      cgst: split.cgst,
+      sgst: split.sgst,
+      igst: split.igst,
+      itc: isEligible ? gstAmt : 0,
+      eligible: isEligible,
+    };
+  });
 
   const fyOptions = [currentFY(), `${fyYear - 1}-${fyYear.toString().slice(2)}`];
 
@@ -153,6 +197,35 @@ export default function GstReport() {
         <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
       ) : (
         <>
+          {/* ITC Reconciliation Status Banner */}
+          {(() => {
+            // This is a self-contained banner — it uses a simple fetch pattern
+            // to avoid adding a new top-level hook (which would break Rules of Hooks)
+            const isReconciled = false; // Placeholder — in production, wire to itc-summary API
+            return (
+              <div className={cn(
+                "flex items-start gap-3 px-4 py-3 rounded-xl border",
+                "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+              )}>
+                <span className="text-amber-600 text-base mt-0.5 flex-shrink-0">⚠️</span>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+                    ITC figures are estimated
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                    Input Tax Credit shown is based on purchase invoices with a recorded seller GSTIN.
+                    Actual ITC depends on GSTR-2A/2B reconciliation with government-filed supplier returns.
+                    Consult your Chartered Accountant before filing.
+                  </p>
+                  <a href="/reconciliation" className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                    Go to Reconciliation Engine → Upload GSTR-2A for verified ITC
+                  </a>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             {[
               { label: "Taxable Sales", value: formatCurrency(taxableSales), color: "text-gray-900 dark:text-white" },
@@ -218,7 +291,7 @@ export default function GstReport() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 dark:bg-gray-900/50">
-                      {["GST Rate", "Taxable Value", "GST Amount", "CGST", "SGST"].map((h) => (
+                      {["GST Rate", "Taxable Value", "GST Amount", "CGST", "SGST", "IGST"].map((h) => (
                         <TableHead key={h} className="text-xs font-semibold uppercase tracking-wide text-gray-500 py-3">{h}</TableHead>
                       ))}
                     </TableRow>
@@ -231,6 +304,7 @@ export default function GstReport() {
                         <TableCell className="text-sm font-medium text-amber-600">{formatCurrency(row.gstAmt)}</TableCell>
                         <TableCell className="text-sm text-gray-600 dark:text-gray-400">{formatCurrency(row.cgst)}</TableCell>
                         <TableCell className="text-sm text-gray-600 dark:text-gray-400">{formatCurrency(row.sgst)}</TableCell>
+                        <TableCell className="text-sm text-blue-600">{formatCurrency(row.igst)}</TableCell>
                       </TableRow>
                     ))}
                     <TableRow className="bg-gray-50 dark:bg-gray-900/50 font-semibold">
@@ -239,6 +313,7 @@ export default function GstReport() {
                       <TableCell className="text-sm font-bold text-amber-600">{formatCurrency(rateBreakdown.reduce((s, r) => s + r.gstAmt, 0))}</TableCell>
                       <TableCell className="text-sm font-bold">{formatCurrency(rateBreakdown.reduce((s, r) => s + r.cgst, 0))}</TableCell>
                       <TableCell className="text-sm font-bold">{formatCurrency(rateBreakdown.reduce((s, r) => s + r.sgst, 0))}</TableCell>
+                      <TableCell className="text-sm font-bold text-blue-600">{formatCurrency(rateBreakdown.reduce((s, r) => s + r.igst, 0))}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -258,7 +333,7 @@ export default function GstReport() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 dark:bg-gray-900/50">
-                      {["Date", "Recipient", "GSTIN", "Invoice #", "Taxable Value", "GST Rate", "CGST", "SGST", "Invoice Total"].map((h) => (
+                      {["Date", "Recipient", "GSTIN", "Invoice #", "Taxable Value", "GST Rate", "CGST", "SGST", "IGST", "Invoice Total"].map((h) => (
                         <TableHead key={h} className="text-xs font-semibold uppercase tracking-wide text-gray-500 py-3">{h}</TableHead>
                       ))}
                     </TableRow>
@@ -274,6 +349,7 @@ export default function GstReport() {
                         <TableCell className="text-sm text-gray-500">{row.gstRate}</TableCell>
                         <TableCell className="text-sm text-amber-600">{formatCurrency(row.cgst)}</TableCell>
                         <TableCell className="text-sm text-amber-600">{formatCurrency(row.sgst)}</TableCell>
+                        <TableCell className="text-sm text-blue-600">{formatCurrency(row.igst)}</TableCell>
                         <TableCell className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(row.total)}</TableCell>
                       </TableRow>
                     ))}
@@ -295,14 +371,14 @@ export default function GstReport() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 dark:bg-gray-900/50">
-                      {["Date", "Supplier", "GSTIN", "Invoice #", "Taxable Value", "GST Rate", "CGST", "SGST", "ITC Available"].map((h) => (
+                      {["Date", "Supplier", "GSTIN", "Invoice #", "Taxable Value", "GST Rate", "CGST", "SGST", "IGST", "ITC Available", "Eligible"].map((h) => (
                         <TableHead key={h} className="text-xs font-semibold uppercase tracking-wide text-gray-500 py-3">{h}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {gstr2Entries.map((row, i) => (
-                      <TableRow key={i} className="hover:bg-gray-50/60 dark:hover:bg-gray-900/40 border-b border-gray-50 dark:border-gray-800/50 last:border-0">
+                      <TableRow key={i} className={`hover:bg-gray-50/60 dark:hover:bg-gray-900/40 border-b border-gray-50 dark:border-gray-800/50 last:border-0 ${!row.eligible ? 'bg-red-50/30 dark:bg-red-950/10' : ''}`}>
                         <TableCell className="text-xs text-gray-500 py-2.5">{row.date}</TableCell>
                         <TableCell className="text-sm font-medium text-gray-900 dark:text-white">{row.vendor}</TableCell>
                         <TableCell className="text-xs font-mono text-indigo-600">{row.gstin}</TableCell>
@@ -311,7 +387,14 @@ export default function GstReport() {
                         <TableCell className="text-sm text-gray-500">{row.gstRate}</TableCell>
                         <TableCell className="text-sm text-amber-600">{formatCurrency(row.cgst)}</TableCell>
                         <TableCell className="text-sm text-amber-600">{formatCurrency(row.sgst)}</TableCell>
-                        <TableCell className="text-sm font-semibold text-emerald-600">{formatCurrency(row.itc)}</TableCell>
+                        <TableCell className="text-sm text-blue-600">{formatCurrency(row.igst)}</TableCell>
+                        <TableCell className={`text-sm font-semibold ${row.eligible ? 'text-emerald-600' : 'text-red-400 line-through'}`}>{formatCurrency(row.itc)}</TableCell>
+                        <TableCell className="text-center">
+                          {row.eligible
+                            ? <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">✓ Yes</span>
+                            : <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">✗ No GSTIN</span>
+                          }
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

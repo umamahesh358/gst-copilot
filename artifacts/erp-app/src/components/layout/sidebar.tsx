@@ -6,7 +6,8 @@ import {
   Moon, Sun, TrendingUp, Crown, Database, Zap, ShieldCheck,
   ShoppingCart, Building2, Truck,
   Lock, Bot, ArrowLeftRight as Recon, ShieldAlert, CheckSquare,
-  Building,
+  Building, Upload, ClipboardList, GitBranch, Plug, Webhook,
+  Palette, FormInput, Activity, Smartphone, Puzzle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ const operationsItems = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Expenses", href: "/expenses", icon: ShoppingCart },
   { name: "Vendors", href: "/vendors", icon: Truck },
+  { name: "Import & Export", href: "/import-export", icon: Upload, proOnly: true },
 ];
 
 const financeItems = [
@@ -34,11 +36,16 @@ const financeItems = [
   { name: "Credit & Debit", href: "/credit-debit", icon: CreditCard },
   { name: "GST Report", href: "/gst-report", icon: BarChart3 },
   { name: "Compliance Alerts", href: "/alerts", icon: ShieldCheck },
+  { name: "Audit Log", href: "/audit-log", icon: ClipboardList, proOnly: true },
 ];
 
 const teamItems = [
   { name: "Companies & Team", href: "/team", icon: Building2, proOnly: true },
   { name: "Tasks & Reminders", href: "/tasks", icon: CheckSquare },
+  { name: "Approvals", href: "/approvals", icon: ShieldCheck, proOnly: true },
+  { name: "Workflows", href: "/workflows", icon: GitBranch, proOnly: true },
+  { name: "Integrations", href: "/integrations", icon: Plug, proOnly: true },
+  { name: "Webhooks", href: "/webhooks", icon: Webhook, proOnly: true },
 ];
 
 const v5Items = [
@@ -46,12 +53,17 @@ const v5Items = [
   { name: "Reconciliation", href: "/reconciliation", icon: Recon, proOnly: true },
   { name: "Policy Engine", href: "/policy", icon: ShieldAlert, proOnly: true },
   { name: "Enterprise Admin", href: "/enterprise", icon: Building, proOnly: true },
+  { name: "Add-ons", href: "/addons", icon: Puzzle, proOnly: true },
 ];
 
 const cloudItems = [
   { name: "Billing", href: "/billing", icon: Crown },
   { name: "Cloud Backup", href: "/backup", icon: Database },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Branding", href: "/branding", icon: Palette },
+  { name: "Custom Fields", href: "/custom-fields", icon: FormInput, proOnly: true },
+  { name: "System Health", href: "/system-health", icon: Activity, proOnly: true },
+  { name: "Devices", href: "/devices", icon: Smartphone },
 ];
 
 type NavItem = { name: string; href: string; icon: React.ElementType; proOnly?: boolean };

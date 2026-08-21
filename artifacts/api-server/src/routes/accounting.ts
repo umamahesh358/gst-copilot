@@ -15,13 +15,13 @@ router.get("/accounting/transactions", requireAuth, async (req: AuthRequest, res
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
 
-  const conditions = [];
+  const conditions = [eq(transactionsTable.userId, req.userId!)];
   if (type) conditions.push(eq(transactionsTable.type, type));
   if (startDate) conditions.push(gte(transactionsTable.date, startDate));
   if (endDate) conditions.push(lte(transactionsTable.date, endDate));
 
   const all = await db.select().from(transactionsTable)
-    .where(conditions.length ? and(...conditions) : undefined)
+    .where(and(...conditions))
     .orderBy(sql`${transactionsTable.date} DESC`);
 
   const total = all.length;
@@ -45,6 +45,7 @@ router.post("/accounting/transactions", requireAuth, async (req: AuthRequest, re
 
   const data = result.data;
   const [transaction] = await db.insert(transactionsTable).values({
+    userId: req.userId!,
     type: data.type,
     category: data.category,
     description: data.description,
@@ -82,7 +83,11 @@ router.get("/accounting/summary", requireAuth, async (req: AuthRequest, res) => 
 
   const endDate = now.toISOString().split("T")[0];
   const transactions = await db.select().from(transactionsTable)
-    .where(and(gte(transactionsTable.date, startDate), lte(transactionsTable.date, endDate)));
+    .where(and(
+      eq(transactionsTable.userId, req.userId!),
+      gte(transactionsTable.date, startDate),
+      lte(transactionsTable.date, endDate)
+    ));
 
   const income = transactions.filter(t => t.type === "income");
   const expenses = transactions.filter(t => t.type === "expense");

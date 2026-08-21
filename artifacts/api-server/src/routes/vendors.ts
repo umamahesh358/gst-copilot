@@ -1,18 +1,17 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { vendorsTable, auditLogsTable } from "@workspace/db";
-import { eq, ilike, or, desc } from "drizzle-orm";
+import { eq, ilike, or, desc, and } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
 router.get("/vendors", requireAuth, async (req: AuthRequest, res) => {
   const q = req.query.q as string | undefined;
-  const query = db.select().from(vendorsTable).where(eq(vendorsTable.isDeleted, false));
   const vendors = await db
     .select()
     .from(vendorsTable)
-    .where(eq(vendorsTable.isDeleted, false))
+    .where(and(eq(vendorsTable.userId, req.userId!), eq(vendorsTable.isDeleted, false)))
     .orderBy(desc(vendorsTable.createdAt));
 
   const filtered = q
@@ -29,10 +28,11 @@ router.get("/vendors", requireAuth, async (req: AuthRequest, res) => {
 
 router.get("/vendors/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const [vendor] = await db
     .select()
     .from(vendorsTable)
-    .where(eq(vendorsTable.id, id))
+    .where(and(eq(vendorsTable.id, id), eq(vendorsTable.userId, req.userId!)))
     .limit(1);
   if (!vendor || vendor.isDeleted) {
     res.status(404).json({ error: "Not found", message: "Vendor not found" });
@@ -47,7 +47,14 @@ router.post("/vendors", requireAuth, async (req: AuthRequest, res) => {
     res.status(400).json({ error: "Validation error", message: "name is required" });
     return;
   }
+  // BUG-11: Server-side GSTIN validation
+  const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+  if (gstin && !GSTIN_REGEX.test(gstin.trim().toUpperCase())) {
+    res.status(400).json({ error: "Validation error", message: "Invalid GSTIN format" });
+    return;
+  }
   const [vendor] = await db.insert(vendorsTable).values({
+    userId: req.userId!,
     name, legalName, gstin, pan, contactPerson, email, phone,
     address, city, state, pincode, category, paymentTerms,
     bankAccountName, bankAccountNumber, bankIfsc, notes,
@@ -66,12 +73,13 @@ router.post("/vendors", requireAuth, async (req: AuthRequest, res) => {
 
 router.put("/vendors/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
   const { name, legalName, gstin, pan, contactPerson, email, phone, address, city, state, pincode, category, paymentTerms, bankAccountName, bankAccountNumber, bankIfsc, notes, isActive } = req.body;
 
   const [vendor] = await db
     .update(vendorsTable)
     .set({ name, legalName, gstin, pan, contactPerson, email, phone, address, city, state, pincode, category, paymentTerms, bankAccountName, bankAccountNumber, bankIfsc, notes, isActive, updatedAt: new Date() })
-    .where(eq(vendorsTable.id, id))
+    .where(and(eq(vendorsTable.id, id), eq(vendorsTable.userId, req.userId!)))
     .returning();
 
   if (!vendor) {
@@ -92,7 +100,8 @@ router.put("/vendors/:id", requireAuth, async (req: AuthRequest, res) => {
 
 router.delete("/vendors/:id", requireAuth, async (req: AuthRequest, res) => {
   const id = parseInt(req.params.id as string);
-  await db.update(vendorsTable).set({ isDeleted: true, updatedAt: new Date() }).where(eq(vendorsTable.id, id));
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID", message: "ID must be a number" }); return; }
+  await db.update(vendorsTable).set({ isDeleted: true, updatedAt: new Date() }).where(and(eq(vendorsTable.id, id), eq(vendorsTable.userId, req.userId!)));
 
   await db.insert(auditLogsTable).values({
     userId: req.userId!,
