@@ -58,7 +58,7 @@ router.post("/agent-runs", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.get("/agent-runs/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const [run] = await db.select().from(aiAgentRunsTable).where(
     and(eq(aiAgentRunsTable.id, id), eq(aiAgentRunsTable.userId, req.userId!))
   );
@@ -72,7 +72,7 @@ router.get("/agent-runs/:id", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.post("/agent-runs/:id/execute", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const [run] = await db.select().from(aiAgentRunsTable).where(
     and(eq(aiAgentRunsTable.id, id), eq(aiAgentRunsTable.userId, req.userId!))
   );
@@ -91,7 +91,7 @@ router.post("/agent-runs/:id/execute", requireAuth, async (req: AuthRequest, res
   }
 
   const step = steps[0];
-  if (step.requiresConfirmation && !req.body.confirmed) {
+  if (step.requiresConfirmation !== 0 && !req.body.confirmed) {
     res.json({ requiresConfirmation: true, step });
     return;
   }
@@ -118,7 +118,7 @@ router.post("/agent-runs/:id/execute", requireAuth, async (req: AuthRequest, res
 });
 
 router.post("/agent-runs/:id/cancel", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   await db.update(aiAgentRunsTable).set({ status: "cancelled", updatedAt: new Date() })
     .where(and(eq(aiAgentRunsTable.id, id), eq(aiAgentRunsTable.userId, req.userId!)));
   await db.update(aiAgentStepsTable).set({ status: "cancelled" })
@@ -127,7 +127,7 @@ router.post("/agent-runs/:id/cancel", requireAuth, async (req: AuthRequest, res)
 });
 
 router.delete("/agent-runs/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   await db.delete(aiAgentStepsTable).where(eq(aiAgentStepsTable.agentRunId, id));
   await db.delete(aiAgentRunsTable).where(
     and(eq(aiAgentRunsTable.id, id), eq(aiAgentRunsTable.userId, req.userId!))

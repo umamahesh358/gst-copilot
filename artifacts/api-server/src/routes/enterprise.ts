@@ -59,10 +59,12 @@ router.get("/enterprise/overview", requireAuth, async (req: AuthRequest, res) =>
     .orderBy(desc(auditLogsTable.createdAt)).limit(10);
   const [sub] = await db.select().from(subscriptionsTable).where(eq(subscriptionsTable.userId, req.userId!));
 
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
   res.json({
     overview: {
       user: { id: user.id, name: user.name, email: user.email, plan: user.plan },
-      devices: { total: devices.length, trusted: devices.filter(d => d.trusted).length },
+      devices: { total: devices.length, trusted: devices.filter(d => d.isTrusted).length },
       subscription: sub ?? null,
       recentActivity: recentAudit.length,
     },
@@ -94,7 +96,7 @@ router.get("/enterprise/metrics", requireAuth, async (req: AuthRequest, res) => 
     metrics: {
       totalAuditEvents: auditRows.length,
       totalDevices: devices.length,
-      trustedDevices: devices.filter(d => d.trusted).length,
+      trustedDevices: devices.filter(d => d.isTrusted).length,
       topActions: Object.entries(actionCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
       topEntities: Object.entries(entityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
     },
@@ -107,7 +109,7 @@ router.get("/enterprise/access-review", requireAuth, async (req: AuthRequest, re
     .where(eq(auditLogsTable.userId, req.userId!))
     .orderBy(desc(auditLogsTable.createdAt)).limit(20);
   res.json({
-    devices: devices.map(d => ({ id: d.id, deviceName: d.deviceName, trusted: d.trusted, lastSeen: d.lastSeen })),
+    devices: devices.map(d => ({ id: d.id, name: d.name, isTrusted: d.isTrusted, lastSeenAt: d.lastSeenAt })),
     recentAccess: recentAudit,
   });
 });

@@ -228,7 +228,7 @@ export default function AiAgents() {
                             <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{s.description as string}</span>
                             <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-500 rounded px-1">{s.stepType as string}</span>
                           </div>
-                          {isCompleted && s.output && (
+                          {isCompleted && Boolean(s.output) && (
                             <p className="text-[11px] text-gray-500 mt-1">{(s.output as Record<string, unknown>).summary as string} · Confidence: {Math.round(((s.output as Record<string, unknown>).confidence as number) * 100)}%</p>
                           )}
                           {s.requiresConfirmation === 1 && isPending && (

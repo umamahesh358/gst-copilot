@@ -20,7 +20,12 @@ const BUILT_IN_ADDONS = [
 router.get("/addons", requireAuth, async (req: AuthRequest, res) => {
   let addons = await db.select().from(addOnsTable);
   if (addons.length === 0) {
-    await db.insert(addOnsTable).values(BUILT_IN_ADDONS.map(a => ({ ...a, isActive: 1 })));
+    // Insert built-in add-ons only if they don't already exist (prevents race condition)
+    for (const addon of BUILT_IN_ADDONS) {
+      await db.insert(addOnsTable)
+        .values({ ...addon, isActive: 1 })
+        .onConflictDoNothing();
+    }
     addons = await db.select().from(addOnsTable);
   }
 
@@ -34,7 +39,7 @@ router.get("/addons", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.post("/addons/:slug/install", requireAuth, async (req: AuthRequest, res) => {
-  const [addon] = await db.select().from(addOnsTable).where(eq(addOnsTable.slug, req.params.slug));
+  const [addon] = await db.select().from(addOnsTable).where(eq(addOnsTable.slug, String(req.params.slug)));
   if (!addon) { res.status(404).json({ error: "Add-on not found" }); return; }
 
   const existing = await db.select().from(addOnInstallsTable).where(
@@ -67,7 +72,7 @@ router.post("/addons/:slug/install", requireAuth, async (req: AuthRequest, res) 
 });
 
 router.post("/addons/:slug/uninstall", requireAuth, async (req: AuthRequest, res) => {
-  const [addon] = await db.select().from(addOnsTable).where(eq(addOnsTable.slug, req.params.slug));
+  const [addon] = await db.select().from(addOnsTable).where(eq(addOnsTable.slug, String(req.params.slug)));
   if (!addon) { res.status(404).json({ error: "Not found" }); return; }
 
   await db.update(addOnInstallsTable).set({ status: "inactive", deactivatedAt: new Date() })
@@ -85,7 +90,7 @@ router.post("/addons/:slug/uninstall", requireAuth, async (req: AuthRequest, res
 });
 
 router.get("/addons/:slug", requireAuth, async (req: AuthRequest, res) => {
-  const [addon] = await db.select().from(addOnsTable).where(eq(addOnsTable.slug, req.params.slug));
+  const [addon] = await db.select().from(addOnsTable).where(eq(addOnsTable.slug, String(req.params.slug)));
   if (!addon) { res.status(404).json({ error: "Not found" }); return; }
   const installs = await db.select().from(addOnInstallsTable).where(
     and(eq(addOnInstallsTable.addOnId, addon.id), eq(addOnInstallsTable.userId, req.userId!))

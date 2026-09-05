@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -67,6 +67,8 @@ function AuthenticatedApp() {
     <AuthGuard>
       <AppLayout>
         <Switch>
+          {/* Redirect root to dashboard */}
+          <Route path="/"><Redirect to="/dashboard" /></Route>
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/invoice-generator" component={InvoiceGenerator} />
           <Route path="/invoices/new" component={NewInvoice} />
@@ -154,8 +156,10 @@ function Router() {
       <Route path="/onboarding">
         <AuthGuard><Onboarding /></AuthGuard>
       </Route>
-      <Route path="/" component={() => <Login />} />
-      <Route path="/:rest*"><AuthenticatedApp /></Route>
+      {/* Root redirect: send to login, AuthGuard will redirect to dashboard if authenticated */}
+      <Route path="/"><Redirect to="/login" /></Route>
+      {/* Catch-all: authenticated pages */}
+      <Route><AuthenticatedApp /></Route>
     </Switch>
   );
 }

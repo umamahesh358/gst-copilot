@@ -56,7 +56,9 @@ export default function Tasks() {
   const dueSoon = (dueSoonData?.tasks ?? []) as Record<string, unknown>[];
   const f = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
 
-  const isOverdue = (t: Record<string, unknown>) => t.dueDate && new Date(t.dueDate as string) < new Date() && t.status !== "completed";
+  const isOverdue = (t: Record<string, unknown>): boolean =>
+    !!(t.dueDate && new Date(t.dueDate as string) < new Date() && t.status !== "completed");
+
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
@@ -156,10 +158,10 @@ export default function Tasks() {
               </button>
               <div className="flex-1 min-w-0">
                 <p className={cn("text-sm font-medium text-gray-900 dark:text-white", t.status === "completed" && "line-through text-gray-400")}>{t.title as string}</p>
-                {t.description && <p className="text-xs text-gray-400 truncate">{t.description as string}</p>}
+                {Boolean(t.description) && <p className="text-xs text-gray-400 truncate">{t.description as string}</p>}
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn("text-[10px] font-medium rounded px-1.5 py-0.5", pCfg.color)}>{pCfg.label}</span>
-                  {t.dueDate && <span className={cn("text-[10px] flex items-center gap-0.5", overdue ? "text-red-500" : "text-gray-400")}>
+                  {Boolean(t.dueDate) && <span className={cn("text-[10px] flex items-center gap-0.5", overdue ? "text-red-500" : "text-gray-400")}>
                     <Calendar className="h-2.5 w-2.5" />{new Date(t.dueDate as string).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}{overdue && " — Overdue"}</span>}
                   {t.source === "ai" && <span className="text-[10px] text-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 rounded px-1">AI</span>}
                 </div>

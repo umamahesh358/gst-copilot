@@ -67,7 +67,8 @@ export interface OnboardingBody {
 export interface DashboardSummary {
   totalRevenue: number;
   revenueGrowth: number;
-  pendingPayments: number;
+  /** @deprecated use pendingAmount */ pendingPayments?: number;
+  pendingAmount: number;
   unpaidInvoicesCount: number;
   lowStockCount: number;
   netProfit: number;
@@ -75,7 +76,22 @@ export interface DashboardSummary {
   totalExpenses: number;
   totalInvoicesThisMonth: number;
   paidInvoicesCount: number;
+  // GST summary fields
+  outputGst: number;
+  inputGst: number;
+  netGstPayable: number;
+  excessITC: number;
+  blockedCreditAmount: number;
+  expiredCreditAmount: number;
+  eligiblePurchaseInvoices: number;
+  ineligiblePurchaseInvoices: number;
+  gstSplit: {
+    cgst: number;
+    sgst: number;
+    igst: number;
+  };
 }
+
 
 export type ActivityItemType =
   (typeof ActivityItemType)[keyof typeof ActivityItemType];

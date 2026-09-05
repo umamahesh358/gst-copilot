@@ -33,6 +33,16 @@ router.get("/tasks/due-soon", requireAuth, async (req: AuthRequest, res) => {
   res.json({ tasks: items });
 });
 
+// ── Bug #13 Fix: stats/summary MUST be before /:id ─────────────────────────
+router.get("/tasks/stats/summary", requireAuth, async (req: AuthRequest, res) => {
+  const all = await db.select().from(tasksTable).where(eq(tasksTable.userId, req.userId!));
+  const open = all.filter(t => t.status === "open").length;
+  const completed = all.filter(t => t.status === "completed").length;
+  const overdue = all.filter(t => t.status === "open" && t.dueDate && new Date(t.dueDate) < new Date()).length;
+  const high = all.filter(t => t.status === "open" && t.priority === "high").length;
+  res.json({ summary: { total: all.length, open, completed, overdue, high } });
+});
+
 router.post("/tasks", requireAuth, async (req: AuthRequest, res) => {
   const { title, description, module, entityType, entityId, priority, dueDate, reminderAt, assignedToUserId, tags } = req.body;
   if (!title) {
@@ -56,16 +66,17 @@ router.post("/tasks", requireAuth, async (req: AuthRequest, res) => {
   res.status(201).json({ task });
 });
 
+// ── Bug #5 Fix: parseInt(String()) to handle string | string[] ──────────────
 router.get("/tasks/:id", requireAuth, async (req: AuthRequest, res) => {
   const [task] = await db.select().from(tasksTable).where(
-    and(eq(tasksTable.id, parseInt(req.params.id)), eq(tasksTable.userId, req.userId!))
+    and(eq(tasksTable.id, parseInt(String(req.params.id))), eq(tasksTable.userId, req.userId!))
   );
   if (!task) { res.status(404).json({ error: "Not found" }); return; }
   res.json({ task });
 });
 
 router.put("/tasks/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const { title, description, priority, status, dueDate, reminderAt, assignedToUserId, tags } = req.body;
   const [task] = await db.update(tasksTable).set({
     title, description, priority, status,
@@ -80,7 +91,7 @@ router.put("/tasks/:id", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.post("/tasks/:id/complete", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const [task] = await db.update(tasksTable).set({
     status: "completed", completedAt: new Date(), updatedAt: new Date(),
   }).where(and(eq(tasksTable.id, id), eq(tasksTable.userId, req.userId!))).returning();
@@ -89,18 +100,9 @@ router.post("/tasks/:id/complete", requireAuth, async (req: AuthRequest, res) =>
 
 router.delete("/tasks/:id", requireAuth, async (req: AuthRequest, res) => {
   await db.delete(tasksTable).where(
-    and(eq(tasksTable.id, parseInt(req.params.id)), eq(tasksTable.userId, req.userId!))
+    and(eq(tasksTable.id, parseInt(String(req.params.id))), eq(tasksTable.userId, req.userId!))
   );
   res.json({ success: true });
-});
-
-router.get("/tasks/stats/summary", requireAuth, async (req: AuthRequest, res) => {
-  const all = await db.select().from(tasksTable).where(eq(tasksTable.userId, req.userId!));
-  const open = all.filter(t => t.status === "open").length;
-  const completed = all.filter(t => t.status === "completed").length;
-  const overdue = all.filter(t => t.status === "open" && t.dueDate && new Date(t.dueDate) < new Date()).length;
-  const high = all.filter(t => t.status === "open" && t.priority === "high").length;
-  res.json({ summary: { total: all.length, open, completed, overdue, high } });
 });
 
 export default router;

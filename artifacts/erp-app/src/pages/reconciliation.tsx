@@ -383,7 +383,7 @@ export default function Reconciliation() {
                                 </div>
                                 {row && <p className="text-xs text-gray-700 dark:text-gray-300 truncate">{row.description as string}</p>}
                                 <p className="text-[11px] text-gray-500 mt-0.5">{m.matchedEntityType as string} #{m.matchedEntityId as string}</p>
-                                {m.matchReason && <p className="text-[10px] text-indigo-500 mt-0.5">{m.matchReason as string}</p>}
+                                {Boolean(m.matchReason) && <p className="text-[10px] text-indigo-500 mt-0.5">{m.matchReason as string}</p>}
                               </div>
                               {row && (
                                 <div className="text-right flex-shrink-0">

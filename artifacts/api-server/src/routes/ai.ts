@@ -14,7 +14,6 @@ import {
 import { eq, sql, desc, and } from "drizzle-orm";
 import { SendAiPromptBody } from "@workspace/api-zod";
 import { requireAuth, type AuthRequest } from "../middleware/auth";
-// @ts-expect-error - pre-existing: integrations-openai-ai-server lib not yet built
 import { openai } from "@workspace/integrations-openai-ai-server";
 
 const router = Router();

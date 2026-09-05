@@ -62,7 +62,7 @@ router.post("/reconciliation/jobs", requireAuth, async (req: AuthRequest, res) =
 });
 
 router.get("/reconciliation/jobs/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const [job] = await db.select().from(reconciliationJobsTable).where(
     and(eq(reconciliationJobsTable.id, id), eq(reconciliationJobsTable.userId, req.userId!))
   );
@@ -79,7 +79,7 @@ router.get("/reconciliation/jobs/:id", requireAuth, async (req: AuthRequest, res
 });
 
 router.get("/reconciliation/jobs/:id/queue", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const rows = await db.select().from(bankStatementRowsTable)
     .where(and(eq(bankStatementRowsTable.reconciliationJobId, id), eq(bankStatementRowsTable.status, "unmatched")));
   const matches = await db.select().from(reconciliationMatchesTable)
@@ -88,7 +88,7 @@ router.get("/reconciliation/jobs/:id/queue", requireAuth, async (req: AuthReques
 });
 
 router.post("/reconciliation/matches/:matchId/approve", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.matchId);
+  const id = parseInt(String(req.params.matchId));
   const [match] = await db.update(reconciliationMatchesTable).set({
     status: "approved",
     reviewedByUserId: req.userId!,
@@ -111,7 +111,7 @@ router.post("/reconciliation/matches/:matchId/approve", requireAuth, async (req:
 });
 
 router.post("/reconciliation/matches/:matchId/reject", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.matchId);
+  const id = parseInt(String(req.params.matchId));
   const [match] = await db.update(reconciliationMatchesTable).set({
     status: "rejected",
     reviewedByUserId: req.userId!,

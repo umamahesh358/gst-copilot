@@ -115,7 +115,7 @@ function AddonCard({ addon, onInstall, onUninstall, isPending }: {
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className={cn("text-[10px] font-medium rounded px-1.5 py-0.5", catColor)}>{addon.category as string}</span>
               <span className="text-[10px] text-gray-400">v{addon.version as string}</span>
-              {addon.author && <span className="text-[10px] text-gray-400">by {addon.author as string}</span>}
+              {Boolean(addon.author) && <span className="text-[10px] text-gray-400">by {addon.author as string}</span>}
             </div>
           </div>
         </div>

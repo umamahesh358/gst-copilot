@@ -41,7 +41,7 @@ router.post("/policy/rules", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.put("/policy/rules/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const { name, description, conditionOperator, conditionValue, action, isActive, priority } = req.body;
   const [rule] = await db.update(policyRulesTable).set({
     name, description, conditionOperator, conditionValue, action,
@@ -52,7 +52,7 @@ router.put("/policy/rules/:id", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.delete("/policy/rules/:id", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   await db.delete(policyRulesTable)
     .where(and(eq(policyRulesTable.id, id), eq(policyRulesTable.userId, req.userId!)));
   res.json({ success: true });
@@ -111,7 +111,7 @@ router.get("/policy/violations", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.post("/policy/violations/:id/resolve", requireAuth, async (req: AuthRequest, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const [v] = await db.update(policyViolationsTable).set({
     status: "resolved",
     resolvedByUserId: req.userId!,
