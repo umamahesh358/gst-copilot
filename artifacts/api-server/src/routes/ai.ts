@@ -221,14 +221,16 @@ CONTENT RULES:
   try {
     const response = await openai.chat.completions.create({
       model: process.env.AI_MODEL ?? "llama-3.1-8b-instant",
-      max_completion_tokens: 1024,
+      max_tokens: 1024,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
       ],
     });
     answer = response.choices[0]?.message?.content ?? "I couldn't generate a response. Please try again.";
-  } catch {
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("[AI] Groq API call failed:", errorMsg);
     answer = "AI service temporarily unavailable. Here's your data summary:\n\n" +
       `• Revenue: ₹${context.summary.totalRevenue.toLocaleString("en-IN")}\n` +
       `• Unpaid Invoices: ${context.summary.unpaidCount} (₹${context.summary.unpaidAmount.toLocaleString("en-IN")})\n` +

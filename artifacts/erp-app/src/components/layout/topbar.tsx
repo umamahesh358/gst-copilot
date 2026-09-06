@@ -1,11 +1,12 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Search, Bell } from "lucide-react";
+import { Moon, Sun, Bell } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLocation } from "wouter";
+import { customFetch } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
+import { GlobalSearch } from "./global-search";
 
 export function Topbar() {
   const { user } = useAuth();
@@ -16,11 +17,7 @@ export function Topbar() {
   const { data: notifData } = useQuery({
     queryKey: ["/notifications", { unread: "true", limit: "1" }],
     queryFn: async () => {
-      const res = await fetch("/api/notifications?unread=true&limit=1", {
-        credentials: "include",
-      });
-      if (!res.ok) return { unreadCount: 0 };
-      return res.json();
+      return customFetch<{ unreadCount: number }>("/api/notifications?unread=true&limit=1");
     },
     refetchInterval: 30000, // Poll every 30s
     enabled: !!user,
@@ -31,14 +28,7 @@ export function Topbar() {
   return (
     <header className="flex h-14 items-center justify-between border-b bg-background px-6">
       <div className="flex flex-1 items-center gap-4">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search anywhere..."
-            className="w-full bg-muted/50 pl-9 border-none focus-visible:ring-1 h-9"
-          />
-        </div>
+        <GlobalSearch />
       </div>
       <div className="flex items-center gap-4">
         <Button

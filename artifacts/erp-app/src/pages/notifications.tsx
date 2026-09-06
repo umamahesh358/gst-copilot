@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { customFetch } from "@workspace/api-client-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Bell, Check, CheckCheck, Trash2, Loader2, Info, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
@@ -30,9 +31,7 @@ const typeColors: Record<string, string> = {
 };
 
 async function fetchNotifications(): Promise<{ notifications: Notification[]; unreadCount: number }> {
-  const res = await fetch("/api/notifications?limit=50", { credentials: "include" });
-  if (!res.ok) throw new Error("Failed to fetch notifications");
-  return res.json();
+  return customFetch("/api/notifications?limit=50");
 }
 
 export default function Notifications() {
@@ -41,21 +40,21 @@ export default function Notifications() {
 
   const markRead = useMutation({
     mutationFn: async (id: number) => {
-      await fetch(`/api/notifications/${id}/read`, { method: "PATCH", credentials: "include" });
+      await customFetch(`/api/notifications/${id}/read`, { method: "PATCH" });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/notifications"] }),
   });
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      await fetch("/api/notifications/read-all", { method: "PATCH", credentials: "include" });
+      await customFetch("/api/notifications/read-all", { method: "PATCH" });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/notifications"] }),
   });
 
   const deleteNotif = useMutation({
     mutationFn: async (id: number) => {
-      await fetch(`/api/notifications/${id}`, { method: "DELETE", credentials: "include" });
+      await customFetch(`/api/notifications/${id}`, { method: "DELETE" });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/notifications"] }),
   });
