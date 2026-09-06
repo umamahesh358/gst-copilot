@@ -220,7 +220,7 @@ CONTENT RULES:
   let answer = "";
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: process.env.AI_MODEL ?? "llama-3.1-8b-instant",
       max_completion_tokens: 1024,
       messages: [
         { role: "system", content: systemPrompt },
