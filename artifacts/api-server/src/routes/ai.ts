@@ -357,4 +357,36 @@ router.get("/ai/usage", requireAuth, async (req: AuthRequest, res) => {
   res.json({ used: user.aiPromptsUsed, limit, remaining: Math.max(0, limit - user.aiPromptsUsed), plan: user.plan });
 });
 
+// Diagnostic endpoint — tests Groq connectivity directly
+router.get("/ai/test", requireAuth, async (_req: AuthRequest, res) => {
+  try {
+    const model = process.env.AI_MODEL ?? "llama-3.1-8b-instant";
+    const baseURL = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
+    const keyPreview = (process.env.OPENAI_API_KEY ?? "").substring(0, 8) + "...";
+    const response = await openai.chat.completions.create({
+      model,
+      max_tokens: 10,
+      messages: [{ role: "user", content: "Say OK" }],
+    });
+    res.json({
+      status: "ok",
+      model,
+      baseURL,
+      keyPreview,
+      response: response.choices[0]?.message?.content,
+    });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("[AI] Test failed:", errorMsg);
+    res.status(500).json({
+      status: "error",
+      model: process.env.AI_MODEL ?? "llama-3.1-8b-instant",
+      baseURL: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
+      keyPreview: (process.env.OPENAI_API_KEY ?? "").substring(0, 8) + "...",
+      error: errorMsg,
+    });
+  }
+});
+
 export default router;
+

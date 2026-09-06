@@ -8,13 +8,20 @@ import { requireAuth, type AuthRequest } from "../middleware/auth";
 const router = Router();
 
 router.get("/settings", requireAuth, async (req: AuthRequest, res) => {
-  const [settings] = await db.select().from(appSettingsTable)
+  let [settings] = await db.select().from(appSettingsTable)
     .where(eq(appSettingsTable.userId, req.userId!))
     .limit(1);
 
+  // Auto-create default settings if missing (e.g. accounts created before settings were initialised)
   if (!settings) {
-    res.status(404).json({ error: "Not found", message: "Settings not found" });
-    return;
+    [settings] = await db.insert(appSettingsTable).values({
+      userId: req.userId!,
+      theme: "dark",
+      currency: "INR",
+      currencySymbol: "₹",
+      taxLabel: "GST",
+      invoicePrefix: "INV",
+    }).returning();
   }
 
   res.json(settings);
